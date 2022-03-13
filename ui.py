@@ -104,7 +104,7 @@ style = Style(theme=THEME)
 # Begin of window
 root = style.master
 
-width = 1260
+width = 1240
 height = 440
 
 if(USESTATUSBAR):
