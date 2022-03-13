@@ -1,0 +1,7 @@
+ttkbootstrap
+BeautifulSoup4
+requests
+aria2p
+pywin32
+wmi
+pycryptodome
