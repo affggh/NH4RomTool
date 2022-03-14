@@ -1,7 +1,11 @@
 # NH4RomTool    
 
 ![join the chat](https://img.shields.io/badge/LICENSE-Apache%202.0-orange)    
+<<<<<<< HEAD
 Free Rom Unpack and Repack tool on windows !!!
+=======
+Free Rom Unpack and Repack tool on windows !!!    
+>>>>>>> 89f91e5 (edit readme)
 
 ## LOGO
 ![image](https://github.com/affggh/NH4RomTool/blob/master/bin/logo.png)
