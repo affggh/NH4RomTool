@@ -481,6 +481,15 @@ def __xruncmd(event):
     runcmd("busybox ash -c \"%s\"" %(cmd))
     usercmd.delete(0, 'end')
 
+# Parse Payload.bin add by azwhikaru 20220319
+def parsePayload():
+    fileChooseWindow("解析payload.bin")
+    if(os.access(filename.get(), os.F_OK)):
+        showinfo(runcmd("bin/parsePayload.exe " + filename.get()))
+    else:
+        showinfo("Error : 文件不存在")
+    
+
 def xruncmd():
     cmd = USERCMD.get()
     runcmd("busybox ash -c \"%s\"" %(cmd))
@@ -589,6 +598,11 @@ if __name__ == '__main__':
     ttk.Button(tab3, text='检测文件格式', width=10, command=detectFileType,style='primiary.TButton').grid(row=0, column=0, padx='10', pady='8')
     ttk.Button(tab3, text='OZIP解密', width=10, command=ozipDecrypt,style='primiary.TButton').grid(row=0, column=1, padx='10', pady='8')
     ttk.Button(tab3, text='MIUI获取', width=10, command=getMiuiWindow,style='primiary.TButton').grid(row=1, column=0, padx='10', pady='8')
+    
+    s = ttk.Style()
+    s.configure('Button.parsePayload', font=('Helvetica', '5'))
+    ttk.Button(tab3, text='PAYLOAD解析', width=10, command=parsePayload, style='Button.parsePayload').grid(row=1, column=1, padx='10', pady='8')
+
 
     # ScrolledText
     text = scrolledtext.ScrolledText(frame2, width=180, height=18, font=TEXTFONT, relief=SOLID) # 信息展示 文本框
