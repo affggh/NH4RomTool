@@ -126,18 +126,6 @@ def get_time():  # 返回当前时间
         time1 = time2
         return time1
 
-def runcmd(cmd):
-    try:
-        ret = subprocess.Popen(cmd,shell=True,
-                 stdin=subprocess.PIPE,
-                 stdout=subprocess.PIPE,
-                 stderr=subprocess.STDOUT)
-        for i in iter(ret.stdout.readline,b""):
-            return i.decode("utf-8",'ignore').strip()
-    except subprocess.CalledProcessError as e:
-        for i in iter(e.stdout.readline,b""):
-            return e.decode("utf-8",'ignore').strip()
-
 def thrun(fun):  # 调用子线程跑功能，防止卡住
     # showinfo("Test threading...")
     th=threading.Thread(target=fun)

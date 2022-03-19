@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import sys
+import subprocess
 # import tk/tcl
 import tkinter as tk 
 from tkinter import ttk
@@ -27,17 +28,18 @@ import ozip_decrypt  # ozip_decrypt.main(filepath)
 import get_miui
 
 # Flag
-DEBUG = False
-HIDE_CONSOLE = False
-MENUBAR = True
-USEMYLOGO = True
-TEXTREADONLY = True
-TEXTSHOWBANNER = True
-USEMYSTD = False  # 输出重定向到Text控件
-SHOWSHIJU = True
-USESTATUSBAR = False
-VERIFYPROG = True
-LICENSE = "Apache 2.0"
+DEBUG = True                    # 显示调试信息
+HIDE_CONSOLE = False            # 隐藏控制台
+MENUBAR = True                  # 菜单栏
+USEMYLOGO = True                # 使用自己的logo
+TEXTREADONLY = True             # 文本框只读
+TEXTSHOWBANNER = True           # 展示那个文本框的字符画
+USEMYSTD = False                # 输出重定向到Text控件
+SHOWSHIJU = False               # 展示诗句
+USESTATUSBAR = False            # 使用状态栏（并不好用）
+VERIFYPROG = False              # 程序验证（本来打算恰烂钱的）
+EXECPATH = ".\\bin"             # 临时添加可执行程序目录到系统变量
+LICENSE = "Apache 2.0"          # 程序的开源协议
 
 # Verify
 if(VERIFYPROG):
@@ -96,6 +98,9 @@ LOGOICO = ".\\bin\\logo.ico"
 BANNER = ".\\bin\\banner"
 TEXTFONT = '微软雅黑'
 
+if(EXECPATH):
+    utils.addExecPath(EXECPATH)
+
 if(HIDE_CONSOLE):  # 隐藏控制台
     utils.hideForegroundWindow
 
@@ -111,7 +116,7 @@ if(USESTATUSBAR):
     height += 20
 
 root.geometry("%sx%s" %(width,height))
-root.resizable(0,0) # 设置最大化窗口不可用
+# root.resizable(0,0) # 设置最大化窗口不可用
 root.title(WINDOWTITLE)
 
 # Set images
@@ -173,6 +178,18 @@ def showinfo(textmsg):
     text.yview('end')
     if(TEXTREADONLY):
         text.configure(state='disable')
+
+def runcmd(cmd):
+    try:
+        ret = subprocess.Popen(cmd,shell=False,
+                 stdin=subprocess.PIPE,
+                 stdout=subprocess.PIPE,
+                 stderr=subprocess.STDOUT)
+        for i in iter(ret.stdout.readline,b""):
+            showinfo(i.decode("utf-8").strip())
+    except subprocess.CalledProcessError as e:
+        for i in iter(e.stdout.readline,b""):
+            showinfo(e.decode("utf-8").strip())
 
 def showstatus():
     print("test")
@@ -315,16 +332,19 @@ def rmWorkDir():
         utils.rmdir(WorkDir)
     else:
         showinfo("Error : 要删除的文件夹不存在")
+    getWorkDir()
 
 def mkWorkdir():
     userInputWindow()
     showinfo("用户输入：%s" %(inputvar.get()))
     utils.mkdir("NH4_" + "%s" %(inputvar.get()))
+    getWorkDir()
 
 def detectFileType():
     fileChooseWindow("检测文件类型")
     if(os.access(filename.get(), os.F_OK)):
-        showinfo("文件格式为 : " + utils.runcmd(".\\bin\\gettype.exe -i %s" %(filename.get())))
+        showinfo("文件格式为 ：")
+        runcmd("gettype -i %s" %(filename.get()))
     else:
         showinfo("Error : 文件不存在")
 
@@ -557,11 +577,12 @@ if __name__ == '__main__':
         shijuLable.pack(side=LEFT,padx=8)
     framebotm.pack(side=BOTTOM,expand=YES, fill=X, padx=8, pady=0)
 
-    if(DEBUG):
+    if(TEXTSHOWBANNER):
         showbanner()
+
+    if(DEBUG):
         showinfo("Board id : " + sn.get_board_id())
     else:
-        showbanner()
         showinfo("        Version : %s" %(VERSION))
         showinfo("        Author  : %s" %(AUTHOR))
         showinfo("        LICENSE : %s" %(LICENSE))
@@ -570,4 +591,4 @@ if __name__ == '__main__':
     root.mainloop()
     
     if(USEMYSTD):
-        mystd.restoreStd()
+        mystd.restoreStd() # 还原标准输出
