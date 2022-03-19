@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import sys
+import shutil
 import subprocess
 # import tk/tcl
 import tkinter as tk 
@@ -35,9 +36,10 @@ USEMYLOGO = True                # 使用自己的logo
 TEXTREADONLY = True             # 文本框只读
 TEXTSHOWBANNER = True           # 展示那个文本框的字符画
 USEMYSTD = False                # 输出重定向到Text控件
-SHOWSHIJU = False               # 展示诗句
+SHOWSHIJU = True               # 展示诗句
 USESTATUSBAR = False            # 使用状态栏（并不好用）
 VERIFYPROG = False              # 程序验证（本来打算恰烂钱的）
+ALLOWMODIFYCMD = True           # 提供一个可以输入任意命令的框
 EXECPATH = ".\\bin"             # 临时添加可执行程序目录到系统变量
 LICENSE = "Apache 2.0"          # 程序的开源协议
 
@@ -110,7 +112,10 @@ style = Style(theme=THEME)
 root = style.master
 
 width = 1240
-height = 440
+height = 480
+
+if(ALLOWMODIFYCMD):
+    height += 40
 
 if(USESTATUSBAR):
     height += 20
@@ -131,6 +136,8 @@ WorkDir = False
 # Var
 filename = tk.StringVar()
 inputvar = tk.StringVar()
+if(ALLOWMODIFYCMD):
+    USERCMD = tk.StringVar()
 
 # from https://www.i4k.xyz/article/weixin_49317370/108878373
 class myStdout():	# 重定向类
@@ -160,6 +167,22 @@ class myStdout():	# 重定向类
         sys.stdout = self.stdoutbak
         sys.stderr = self.stderrbak
 
+
+class MyThread(threading.Thread):
+    def __init__(self, func, *args):
+        super().__init__()
+        
+        self.func = func
+        self.args = args
+        
+        self.setDaemon(True)
+        self.start()    # 在这里开始
+        
+    def run(self):
+        self.func(*self.args)
+    
+
+
 def logo():
     utils.chLocal()
     root.iconbitmap(LOGOICO)
@@ -186,10 +209,10 @@ def runcmd(cmd):
                  stdout=subprocess.PIPE,
                  stderr=subprocess.STDOUT)
         for i in iter(ret.stdout.readline,b""):
-            showinfo(i.decode("utf-8").strip())
+            showinfo(i.decode("utf-8","ignore").strip())
     except subprocess.CalledProcessError as e:
         for i in iter(e.stdout.readline,b""):
-            showinfo(e.decode("utf-8").strip())
+            showinfo(e.decode("utf-8","ignore").strip())
 
 def showstatus():
     print("test")
@@ -329,7 +352,7 @@ def tableClicked(event):
 def rmWorkDir():
     if(WorkDir):
         showinfo("删除目录：%s" %(WorkDir))
-        utils.rmdir(WorkDir)
+        shutil.rmtree(WorkDir)
     else:
         showinfo("Error : 要删除的文件夹不存在")
     getWorkDir()
@@ -423,11 +446,11 @@ def getMiuiWindow():
     getmiuiWindow.wait_window()
 
 def __unzipfile():
-    fileChooseWindow("选择要解压的文件")
     if(WorkDir):
+        fileChooseWindow("选择要解压的文件")
         if(os.access(filename.get(), os.F_OK)):
             showinfo("正在解压文件：" + filename.get())
-            utils.unzip_file(filename.get(), WorkDir + "\\rom")
+            MyThread(utils.unzip_file(filename.get(), WorkDir + "\\rom"))
             showinfo("解压完成")
         else:
             showinfo("Error : 文件不存在")
@@ -435,22 +458,33 @@ def __unzipfile():
         showinfo("Error : 请先选择工作目录")
 
 def unzipfile():
-    T = threading.Thread(target=__unzipfile())
-    T.start()
+    if(WorkDir):
+        if(os.access(WorkDir + "\\rom", os.F_OK)):
+            shutil.rmtree(WorkDir + "\\rom")
+    __unzipfile()
 
 def __zipcompressfile():
     showinfo("输入生成的文件名")
     userInputWindow()
     if(WorkDir):
         showinfo("正在压缩 ：" + inputvar.get() + ".zip")
-        utils.zip_file(inputvar.get()+".zip", WorkDir + "\\rom")
+        MyThread(utils.zip_file(inputvar.get()+".zip", WorkDir + "\\rom"))
         showinfo("压缩完成")
     else:
         showinfo("Error : 请先选择工作目录")
 
 def zipcompressfile():
-    T = threading.Thread(target=__zipcompressfile())
-    T.start()
+    __zipcompressfile
+
+def __xruncmd(event):
+    cmd = USERCMD.get()
+    runcmd("busybox ash -c \"%s\"" %(cmd))
+    usercmd.delete(0, 'end')
+
+def xruncmd():
+    cmd = USERCMD.get()
+    runcmd("busybox ash -c \"%s\"" %(cmd))
+    usercmd.delete(0, 'end')
 
 def Test():
     showinfo("Test function")
@@ -558,13 +592,20 @@ if __name__ == '__main__':
 
     # ScrolledText
     text = scrolledtext.ScrolledText(frame2, width=180, height=18, font=TEXTFONT, relief=SOLID) # 信息展示 文本框
-    text.pack(side=RIGHT, expand=YES, fill=BOTH , padx=4, pady=2)
+    text.pack(side=TOP, expand=YES, fill=BOTH , padx=4, pady=2)
     # table.bind('<ButtonPress-1>', showinfo("请点击确认目录"))
-
+    if(ALLOWMODIFYCMD):
+        frame22 = ttk.LabelFrame(frame2, text="输入自定义命令", labelanchor="nw", relief=SUNKEN, borderwidth=1)
+        usercmd = ttk.Entry(frame22,textvariable=USERCMD,width=25)
+        usercmd.pack(side=LEFT, expand=YES, fill=X, padx=2, pady=2)
+        usercmd.bind('<Return>', __xruncmd)
+        ttk.Button(frame22, text='运行', command=xruncmd, style='primary.Outline.TButton').pack(side=LEFT, expand=NO, fill=X, padx=2, pady=2)
     # pack frames
-    frame.pack(side=TOP, expand=NO, fill=BOTH, padx=2, pady=2)
+    frame.pack(side=TOP, expand=YES, fill=BOTH, padx=2, pady=2)
     frame1.pack(side=LEFT, expand=YES, fill=BOTH, padx=5, pady=2)
     frame2.pack(side=LEFT, expand=YES, fill=BOTH, padx=5, pady=2)
+    if(ALLOWMODIFYCMD):
+        frame22.pack(side=TOP, expand=NO, fill=BOTH, padx=5, pady=2)
 
     # bottom labels
     framebotm = ttk.Frame(root, relief=FLAT)
@@ -575,7 +616,7 @@ if __name__ == '__main__':
         shiju_font = ('微软雅黑',12)
         shijuLable = ttk.Label(framebotm, text="%s —— %s  《%s》" %(shiju['content'],shiju['author'],shiju['origin']), font=shiju_font)
         shijuLable.pack(side=LEFT,padx=8)
-    framebotm.pack(side=BOTTOM,expand=YES, fill=X, padx=8, pady=0)
+    framebotm.pack(side=BOTTOM,expand=NO, fill=X, padx=8, pady=12)
 
     if(TEXTSHOWBANNER):
         showbanner()

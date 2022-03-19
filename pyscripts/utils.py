@@ -86,16 +86,6 @@ def mkdir(path):
 	else:
 		return False
 
-def rmdir(path):
-    for root, dirs, files in os.walk(path, topdown=False):
-        for file in files:
-            if file.endwith('.jpg'):
-                file = os.path.join(root, file)
-                os.remove(file)
-    
-    if not os.listdir(root):
-        os.rmdir(root)
-
 def hideDosConsole(title):
     # the_program_to_hide = win32gui.GetForegroundWindow()  # 寻找前置窗口
     FrameClass = 'ConsoleWindowClass'

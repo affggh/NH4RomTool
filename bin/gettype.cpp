@@ -56,6 +56,7 @@ int main (int argc, char *argv[]) {
 
 	if(access(fileName, R_OK)!=0) {
 		cerr << "File may not exist..." << endl;
+		return 1;
 	}
 
 	char buffer[BUFREADSIZE];
