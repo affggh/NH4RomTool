@@ -587,8 +587,8 @@ if __name__ == '__main__':
 
     # tab3
     ttk.Button(tab3, text='检测文件格式', width=10, command=detectFileType,style='primiary.TButton').grid(row=0, column=0, padx='10', pady='8')
-    ttk.Button(tab3, text='ozip解密', width=10, command=ozipDecrypt,style='primiary.TButton').grid(row=0, column=1, padx='10', pady='8')
-    ttk.Button(tab3, text='get_MIUI', width=10, command=getMiuiWindow,style='primiary.TButton').grid(row=1, column=0, padx='10', pady='8')
+    ttk.Button(tab3, text='OZIP解密', width=10, command=ozipDecrypt,style='primiary.TButton').grid(row=0, column=1, padx='10', pady='8')
+    ttk.Button(tab3, text='MIUI获取', width=10, command=getMiuiWindow,style='primiary.TButton').grid(row=1, column=0, padx='10', pady='8')
 
     # ScrolledText
     text = scrolledtext.ScrolledText(frame2, width=180, height=18, font=TEXTFONT, relief=SOLID) # 信息展示 文本框
