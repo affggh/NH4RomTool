@@ -27,6 +27,9 @@ import verifysn
 import ozip_decrypt  # ozip_decrypt.main(filepath)
 # import get_miui
 import get_miui
+#import sdat2img
+import sdat2img
+
 
 # Flag
 DEBUG = True                    # 显示调试信息
@@ -36,7 +39,7 @@ USEMYLOGO = True                # 使用自己的logo
 TEXTREADONLY = True             # 文本框只读
 TEXTSHOWBANNER = True           # 展示那个文本框的字符画
 USEMYSTD = False                # 输出重定向到Text控件
-SHOWSHIJU = True               # 展示诗句
+SHOWSHIJU = False               # 展示诗句
 USESTATUSBAR = False            # 使用状态栏（并不好用）
 VERIFYPROG = False              # 程序验证（本来打算恰烂钱的）
 ALLOWMODIFYCMD = True           # 提供一个可以输入任意命令的框
@@ -202,6 +205,15 @@ def showinfo(textmsg):
     if(TEXTREADONLY):
         text.configure(state='disable')
 
+def showontime(textmsg):
+    if(TEXTREADONLY):
+        text.configure(state='normal')
+    # text.delete(1.0, END)
+    text.insert(END,"[%s]" %(utils.get_time()) + "%s" %(textmsg) + "\n")
+    text.update() # 实时返回信息
+    if(TEXTREADONLY):
+        text.configure(state='disable')
+
 def runcmd(cmd):
     try:
         ret = subprocess.Popen(cmd,shell=False,
@@ -213,6 +225,27 @@ def runcmd(cmd):
     except subprocess.CalledProcessError as e:
         for i in iter(e.stdout.readline,b""):
             showinfo(e.decode("utf-8","ignore").strip())
+
+def runontime(cmd):
+    try:
+        ret = subprocess.Popen(cmd,shell=False,
+                 stdin=subprocess.PIPE,
+                 stdout=subprocess.PIPE,
+                 stderr=subprocess.STDOUT)
+        for i in iter(ret.stdout.readline,b""):
+            showontime(i.decode("utf-8","ignore").strip())
+            time.sleep(1)
+    except subprocess.CalledProcessError as e:
+        for i in iter(e.stdout.readline,b""):
+            showontime(e.decode("utf-8","ignore").strip())
+            time.sleep(1)
+
+def runonconsole(cmd):
+    try:
+        ret = subprocess.check_output(cmd)
+        print(ret.decode())
+    except subprocess.CalledProcessError as e:
+        print(e.decode())
 
 def showstatus():
     print("test")
@@ -495,6 +528,22 @@ def xruncmd():
     runcmd("busybox ash -c \"%s\"" %(cmd))
     usercmd.delete(0, 'end')
 
+def sdat2img():
+    fileChooseWindow("选择.new.dat文件")
+    
+    sdat2img.main(TRANSFER_LIST_FILE, NEW_DATA_FILE, OUTPUT_IMAGE_FILE)
+
+def dumppayload():
+    fileChooseWindow("选择payload.bin文件")
+    if(WorkDir):
+        if(os.access(filename.get(),os.F_OK)):
+            showinfo("正在解包payload")
+            threading.Thread(target=runcmd, args=["python .\\bin\\payload_dumper.py %s --out %s\\output" %(filename.get(),WorkDir)], daemon=True).start()
+        else:
+            showinfo("文件不存在")
+    else:
+        showinfo("请先选择工作目录")
+
 def Test():
     showinfo("Test function")
 
@@ -585,6 +634,7 @@ if __name__ == '__main__':
     # tab21 // Unpack
     tab21 = ttk.LabelFrame(tab2, text="解包", labelanchor="nw", relief=SUNKEN, borderwidth=1)
     ttk.Button(tab21, text='解压', width=10, command=unzipfile,style='primiary.Outline.TButton').grid(row=0, column=0, padx='10', pady='8')
+    ttk.Button(tab21, text='payload', width=10, command=dumppayload,style='primiary.Outline.TButton').grid(row=0, column=1, padx='10', pady='8')
     
     # tab22 // Repack
     tab22 = ttk.LabelFrame(tab2, text="打包", labelanchor="nw", relief=SUNKEN, borderwidth=1)
@@ -641,6 +691,7 @@ if __name__ == '__main__':
         showinfo("        Version : %s" %(VERSION))
         showinfo("        Author  : %s" %(AUTHOR))
         showinfo("        LICENSE : %s" %(LICENSE))
+    showinfo("🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵")
 
     root.update()
     root.mainloop()
