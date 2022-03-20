@@ -674,7 +674,7 @@ if __name__ == '__main__':
     # tab21 // Unpack
     tab21 = ttk.LabelFrame(tab2, text="解包", labelanchor="nw", relief=SUNKEN, borderwidth=1)
     ttk.Button(tab21, text='解压', width=10, command=unzipfile,style='primiary.Outline.TButton').grid(row=0, column=0, padx='10', pady='8')
-    ttk.Button(tab21, text='payload', width=10, command=dumppayload,style='primiary.Outline.TButton').grid(row=0, column=1, padx='10', pady='8')
+    ttk.Button(tab21, text='PAYLOAD', width=10, command=dumppayload,style='primiary.Outline.TButton').grid(row=0, column=1, padx='10', pady='8')
     
     # tab22 // Repack
     tab22 = ttk.LabelFrame(tab2, text="打包", labelanchor="nw", relief=SUNKEN, borderwidth=1)
@@ -696,7 +696,7 @@ if __name__ == '__main__':
     s.configure('Button.parsePayload', font=('Helvetica', '5'))
     ttk.Button(tab33, text='PAYLOAD解析', width=10, command=parsePayload, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
-    ttk.Button(tab33, text='修补vbmeta关闭校验', width=10, command=patchvbmeta, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
+    ttk.Button(tab33, text='修补VBMETA关闭校验', width=10, command=patchvbmeta, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
 
     # ScrolledText
