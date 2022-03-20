@@ -33,6 +33,8 @@ import ozip_decrypt  # ozip_decrypt.main(filepath)
 import get_miui
 #import sdat2img
 import sdat2img
+#import vbpatch
+import vbpatch
 
 
 # Flag
@@ -537,6 +539,27 @@ def parsePayload():
     showinfo("解析payload文件")
     threading.Thread(target=__parsePayload, daemon=True).start()   # 开一个子线程防止卡住
 
+def patchvbmeta():
+    fileChooseWindow("选择vbmeta文件")
+    if(os.access(filename.get(), os.F_OK)):
+        if(vbpatch.checkMagic(filename.get())):
+            flag = vbpatch.readVerifyFlag(filename.get())
+            if(flag==0):
+                showinfo("检测到AVB为打开状态，正在关闭...")
+                vbpatch.disableAVB(filename.get())
+            elif(flag==1):
+                showinfo("检测到仅关闭了DM校验，正在关闭AVB...")
+                vbpatch.disableAVB(filename.get())
+            elif(flag==2):
+                showinfo("检测AVB校验已关闭，正在开启...")
+                vbpatch.restore(filename.get())
+            else:
+                showinfo("未知错误")
+        else:
+            showinfo("文件并非vbmeta文件")
+    else:
+        showinfo("文件不存在")
+
 def xruncmd():
     cmd = USERCMD.get()
     runcmd("busybox ash -c \"%s\"" %(cmd))
@@ -548,8 +571,8 @@ def sdat2img():
     sdat2img.main(TRANSFER_LIST_FILE, NEW_DATA_FILE, OUTPUT_IMAGE_FILE)
 
 def dumppayload():
-    fileChooseWindow("选择payload.bin文件")
     if(WorkDir):
+        fileChooseWindow("选择payload.bin文件")
         if(os.access(filename.get(),os.F_OK)):
             showinfo("正在解包payload")
             threading.Thread(target=runcmd, args=["python .\\bin\\payload_dumper.py %s --out %s\\output" %(filename.get(),WorkDir)], daemon=True).start()
@@ -673,7 +696,8 @@ if __name__ == '__main__':
     s.configure('Button.parsePayload', font=('Helvetica', '5'))
     ttk.Button(tab33, text='PAYLOAD解析', width=10, command=parsePayload, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
-
+    ttk.Button(tab33, text='修补vbmeta关闭校验', width=10, command=patchvbmeta, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
+    ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
 
     # ScrolledText
     text = scrolledtext.ScrolledText(frame2, width=180, height=18, font=TEXTFONT, relief=SOLID) # 信息展示 文本框
