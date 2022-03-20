@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import os
 import sys
+import json
+import base64
 import shutil
 import subprocess
 # import tk/tcl
@@ -10,6 +12,8 @@ from tkinter.filedialog import *
 from tkinter import *
 from tkinter import scrolledtext
 from ttkbootstrap import Style  # use ttkbootstrap theme
+from ttkbootstrap.constants import *
+from ttkbootstrap.scrolled import ScrolledFrame
 from bs4 import BeautifulSoup
 import requests
 # using threading in some function
@@ -101,7 +105,7 @@ WINDOWTITLE = "NH4RomTool (沼_Rom工具箱)" + "    版本：" + VERSION + "   
 THEME = "vapor"  # 设置默认主题
 LOGOICO = ".\\bin\\logo.ico"
 BANNER = ".\\bin\\banner"
-TEXTFONT = '微软雅黑'
+TEXTFONT = ['Arial', 5]
 
 if(EXECPATH):
     utils.addExecPath(EXECPATH)
@@ -240,12 +244,12 @@ def runontime(cmd):
             showontime(e.decode("utf-8","ignore").strip())
             time.sleep(1)
 
-def runonconsole(cmd):
+def returnoutput(cmd):
     try:
-        ret = subprocess.check_output(cmd)
-        print(ret.decode())
+        ret = subprocess.check_output(cmd, shell=False, stderr=subprocess.STDOUT)
+        return(ret.decode())
     except subprocess.CalledProcessError as e:
-        print(e.decode())
+        return(e.decode())
 
 def showstatus():
     print("test")
@@ -515,13 +519,23 @@ def __xruncmd(event):
     usercmd.delete(0, 'end')
 
 # Parse Payload.bin add by azwhikaru 20220319
-def parsePayload():
+def __parsePayload():
     fileChooseWindow("解析payload.bin")
     if(os.access(filename.get(), os.F_OK)):
-        showinfo(runcmd("bin/parsePayload.exe " + filename.get()))
+        data = returnoutput("bin/parsePayload.exe " + filename.get())
+        datadict = dict(json.loads(data.replace("\'","\"")))
+        showinfo("PAYLOAD文件解析结果如下")
+        showinfo("        文件 HASH 值 ：%s" %(utils.bytesToHexString(base64.b64decode(datadict["FILE_HASH"]))))
+        showinfo("        文件大小     ：%s" %(datadict["FILE_SIZE"]))
+        showinfo("        METADATA HASH：%s" %(utils.bytesToHexString(base64.b64decode(datadict["METADATA_HASH"]))))
+        showinfo("        METADATA 大小：%s" %(datadict["METADATA_SIZE"]))
+        showinfo("  注：HASH值类型为SHA256")
     else:
         showinfo("Error : 文件不存在")
-    
+
+def parsePayload():
+    showinfo("解析payload文件")
+    threading.Thread(target=__parsePayload, daemon=True).start()   # 开一个子线程防止卡住
 
 def xruncmd():
     cmd = USERCMD.get()
@@ -594,12 +608,15 @@ if __name__ == '__main__':
     tab1 = ttk.Frame(tabControl)
     tab2 = ttk.Frame(tabControl)
     tab3 = ttk.Frame(tabControl)
+    tab33 = ScrolledFrame(tab3, autohide=True, width=220)
     tab4 = ttk.Frame(tabControl)
 
     tabControl.add(tab1, text="工作目录")
     tabControl.add(tab2, text="打包解包")
     tabControl.add(tab3, text="其他工具")
     tabControl.add(tab4, text="设置")
+
+    tab33.pack(side=LEFT, expand=YES, fill=BOTH)
 
     # Treeview  use to list work dir
     tab11 = ttk.Frame(tab1)
@@ -613,7 +630,7 @@ if __name__ == '__main__':
             )
     table.column('Workdir', width=100, anchor='center')
     table.heading('Workdir', text='工作目录')
-    table.pack(side=LEFT, fill=BOTH, expand=YES)
+    table.pack(side=TOP, fill=BOTH, expand=YES)
     table.bind('<ButtonRelease-1>',tableClicked)
     getWorkDir()
     
@@ -625,7 +642,7 @@ if __name__ == '__main__':
     ttk.Button(tab12, text='刷新目录', width=10, command=getWorkDir,style='primiary.Outline.TButton').grid(row=1, column=1, padx='10', pady='8')
     
     # Pack Buttons
-    tab12.pack(side=BOTTOM, fill=BOTH, expand=NO)
+    tab12.pack(side=BOTTOM, fill=BOTH, expand=YES, anchor=CENTER)
     
     # pack Notebook
     tabControl.pack(fill=BOTH, expand=YES)
@@ -645,13 +662,17 @@ if __name__ == '__main__':
     tab22.pack(side=TOP, fill=BOTH, expand=YES)
 
     # tab3
-    ttk.Button(tab3, text='检测文件格式', width=10, command=detectFileType,style='primiary.TButton').grid(row=0, column=0, padx='10', pady='8')
-    ttk.Button(tab3, text='OZIP解密', width=10, command=ozipDecrypt,style='primiary.TButton').grid(row=0, column=1, padx='10', pady='8')
-    ttk.Button(tab3, text='MIUI获取', width=10, command=getMiuiWindow,style='primiary.TButton').grid(row=1, column=0, padx='10', pady='8')
+    ttk.Button(tab33, text='检测文件格式', width=10, command=detectFileType, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
+    ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
+    ttk.Button(tab33, text='OZIP解密', width=10, command=ozipDecrypt, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
+    ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
+    ttk.Button(tab33, text='MIUI获取', width=10, command=getMiuiWindow, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
+    ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
     
     s = ttk.Style()
     s.configure('Button.parsePayload', font=('Helvetica', '5'))
-    ttk.Button(tab3, text='PAYLOAD解析', width=10, command=parsePayload, style='Button.parsePayload').grid(row=1, column=1, padx='10', pady='8')
+    ttk.Button(tab33, text='PAYLOAD解析', width=10, command=parsePayload, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
+    ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
 
 
     # ScrolledText
