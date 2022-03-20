@@ -560,6 +560,10 @@ def patchvbmeta():
     else:
         showinfo("文件不存在")
 
+def callMagiskPatcher():
+    showinfo("正在启动 Magisk Patcher...")
+    # TO-DO add by azwhikaru 20220320
+
 def xruncmd():
     cmd = USERCMD.get()
     runcmd("busybox ash -c \"%s\"" %(cmd))
@@ -697,6 +701,7 @@ if __name__ == '__main__':
     ttk.Button(tab33, text='PAYLOAD解析', width=10, command=parsePayload, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Button(tab33, text='修补VBMETA关闭校验', width=10, command=patchvbmeta, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
+    ttk.Button(tab33, text='使用MAGISK_PATCHER', width=10, command=callMagiskPatcher, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
 
     # ScrolledText
