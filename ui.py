@@ -139,6 +139,7 @@ LOGOIMG = tk.PhotoImage(file=".\\bin\\logo.png")
 ALIPAYIMG = tk.PhotoImage(file=".\\bin\\alipay.png")
 WECHATIMG = tk.PhotoImage(file=".\\bin\\wechat.png")
 ALIREDPACIMG = tk.PhotoImage(file=".\\bin\\zfbhb.png")
+DEFAULTSTATUS = tk.PhotoImage(file=".\\bin\\processdone.png")
 
 global WorkDir
 WorkDir = False
@@ -254,9 +255,6 @@ def returnoutput(cmd):
     except subprocess.CalledProcessError as e:
         return(e.decode())
 
-def showstatus():
-    print("test")
-
 def showbanner():
     if(TEXTSHOWBANNER):
         with open(BANNER, "r") as b:
@@ -371,30 +369,36 @@ def getWorkDir():
     for item in d:
         table.insert('','end',values=item)
 
-if(USESTATUSBAR):
-    def statusend():
+def statusend():
+    if(USESTATUSBAR):
         global STATUSON
         STATUSON = True
         statusthread.join()
+        statusbar['image'] = DEFAULTSTATUS
+    else:
+        pass
 
-    def __statusstart():
-        while(True):
-            #for i in range(len(STATUSSTRINGS)):
-            for i in range(33):  # 33是图片帧数
-                #statusbar['text'] = STATUSSTRINGS[i]
-                photo = PhotoImage(file='./bin/processing.gif',format='gif -index %i' %(i))
-                statusbar['image'] = photo
-                time.sleep(1/10)
+def __statusstart():
+    while(True):
+    #for i in range(len(STATUSSTRINGS)):
+        for i in range(33):  # 33是图片帧数
+        #statusbar['text'] = STATUSSTRINGS[i]
+            photo = PhotoImage(file='./bin/processing.gif',format='gif -index %i' %(i))
+            statusbar['image'] = photo
+            time.sleep(1/10)
             global STATUSON
-            if(STATUSON):
-                break
+        if(STATUSON):
+            break
 
-    def statusstart():
+def statusstart():
+    if(USESTATUSBAR):
         global STATUSON
         STATUSON = False
         global statusthread
         statusthread = threading.Thread(target=__statusstart)
         statusthread.start()
+    else:
+        pass
 
 def SelectWorkDir():
     item_text = ['']
@@ -760,8 +764,9 @@ if __name__ == '__main__':
     ttk.Button(framebotm, text='清理信息', command=cleaninfo,style='secondary.TButton').pack(side=RIGHT, expand=NO, padx=5,pady=0)
     # Status bar
     if(USESTATUSBAR):
-        statusbar = ttk.Label(framebotm, relief='flat', anchor=tk.E, bootstyle="info", text="Status")
+        statusbar = ttk.Label(framebotm, relief='flat', anchor=tk.E, bootstyle="info")
         statusbar.pack(side=RIGHT, fill=tk.X, ipadx=12)
+        statusbar['image'] = DEFAULTSTATUS
     # shiju
     if(SHOWSHIJU):
         shiju = utils.getShiju()
