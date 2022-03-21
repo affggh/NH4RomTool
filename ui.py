@@ -46,7 +46,7 @@ TEXTREADONLY = True             # 文本框只读
 TEXTSHOWBANNER = True           # 展示那个文本框的字符画
 USEMYSTD = False                # 输出重定向到Text控件
 SHOWSHIJU = False               # 展示诗句
-USESTATUSBAR = False            # 使用状态栏（并不好用）
+USESTATUSBAR = True            # 使用状态栏（并不好用）
 VERIFYPROG = False              # 程序验证（本来打算恰烂钱的）
 ALLOWMODIFYCMD = True           # 提供一个可以输入任意命令的框
 EXECPATH = ".\\bin"             # 临时添加可执行程序目录到系统变量
@@ -110,6 +110,9 @@ BANNER = ".\\bin\\banner"
 TEXTFONT = ['Arial', 5]
 LOCALDIR = os.path.abspath(os.path.dirname(sys.argv[0]))
 
+if(USESTATUSBAR):
+    STATUSSTRINGS = ['-', '\\', '|', '/', '-']
+
 if(EXECPATH):
     utils.addExecPath(EXECPATH)
 
@@ -126,9 +129,6 @@ height = 480
 
 if(ALLOWMODIFYCMD):
     height += 40
-
-if(USESTATUSBAR):
-    height += 20
 
 root.geometry("%sx%s" %(width,height))
 # root.resizable(0,0) # 设置最大化窗口不可用
@@ -371,6 +371,31 @@ def getWorkDir():
     for item in d:
         table.insert('','end',values=item)
 
+if(USESTATUSBAR):
+    def statusend():
+        global STATUSON
+        STATUSON = True
+        statusthread.join()
+
+    def __statusstart():
+        while(True):
+            #for i in range(len(STATUSSTRINGS)):
+            for i in range(33):  # 33是图片帧数
+                #statusbar['text'] = STATUSSTRINGS[i]
+                photo = PhotoImage(file='./bin/processing.gif',format='gif -index %i' %(i))
+                statusbar['image'] = photo
+                time.sleep(1/10)
+            global STATUSON
+            if(STATUSON):
+                break
+
+    def statusstart():
+        global STATUSON
+        STATUSON = False
+        global statusthread
+        statusthread = threading.Thread(target=__statusstart)
+        statusthread.start()
+
 def SelectWorkDir():
     item_text = ['']
     for item in table.selection():
@@ -525,6 +550,7 @@ def __xruncmd(event):
 def __parsePayload():
     fileChooseWindow("解析payload.bin")
     if(os.access(filename.get(), os.F_OK)):
+        statusstart()
         data = returnoutput("bin/parsePayload.exe " + filename.get())
         datadict = dict(json.loads(data.replace("\'","\"")))
         showinfo("PAYLOAD文件解析结果如下")
@@ -533,6 +559,7 @@ def __parsePayload():
         showinfo("        METADATA HASH：%s" %(utils.bytesToHexString(base64.b64decode(datadict["METADATA_HASH"]))))
         showinfo("        METADATA 大小：%s" %(datadict["METADATA_SIZE"]))
         showinfo("  注：HASH值类型为SHA256")
+        statusend()
     else:
         showinfo("Error : 文件不存在")
 
@@ -630,11 +657,6 @@ if __name__ == '__main__':
         for item in menuItem:
             menu2.add_command(label=item, command=lambda n=item:change_theme(n))
         menuBar.add_cascade(label="主题", menu=menu2)
-
-    # Status bar
-    if(USESTATUSBAR):
-        statusbar = ttk.Label(root, text='status bar', relief='flat', anchor=tk.E, bootstyle="info")
-        statusbar.pack(side=tk.BOTTOM, fill=tk.X, ipadx=12)
 
     # define labels
     frame = ttk.LabelFrame(root, text="- - NH4 Rom Tool - -", labelanchor="nw", relief=GROOVE, borderwidth=1)
@@ -734,8 +756,12 @@ if __name__ == '__main__':
         frame22.pack(side=TOP, expand=NO, fill=BOTH, padx=5, pady=2)
 
     # bottom labels
-    framebotm = ttk.Frame(root, relief=FLAT)
+    framebotm = ttk.Frame(root, relief=FLAT, borderwidth=0)
     ttk.Button(framebotm, text='清理信息', command=cleaninfo,style='secondary.TButton').pack(side=RIGHT, expand=NO, padx=5,pady=0)
+    # Status bar
+    if(USESTATUSBAR):
+        statusbar = ttk.Label(framebotm, relief='flat', anchor=tk.E, bootstyle="info", text="Status")
+        statusbar.pack(side=RIGHT, fill=tk.X, ipadx=12)
     # shiju
     if(SHOWSHIJU):
         shiju = utils.getShiju()
