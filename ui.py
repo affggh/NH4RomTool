@@ -108,6 +108,7 @@ THEME = "vapor"  # 设置默认主题
 LOGOICO = ".\\bin\\logo.ico"
 BANNER = ".\\bin\\banner"
 TEXTFONT = ['Arial', 5]
+LOCALDIR = os.path.abspath(os.path.dirname(sys.argv[0]))
 
 if(EXECPATH):
     utils.addExecPath(EXECPATH)
@@ -560,9 +561,20 @@ def patchvbmeta():
     else:
         showinfo("文件不存在")
 
-def callMagiskPatcher():
+def __callMagiskPatcher():
     showinfo("正在启动 Magisk Patcher...")
+    filepath = ".\\bin\\magisk_patcher\\MagiskPatcher.py"
+    if(os.access(filepath, os.F_OK)):
+        os.chdir(os.path.dirname(filepath))
+        os.system("python "+"MagiskPatcher.py")
+        os.chdir(LOCALDIR)
+    else:
+        showinfo("文件不存在")
     # TO-DO add by azwhikaru 20220320
+
+def callMagiskPatcher():
+    t = threading.Thread(target=__callMagiskPatcher)
+    t.start()
 
 def xruncmd():
     cmd = USERCMD.get()

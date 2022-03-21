@@ -13,8 +13,8 @@ import threading
 
 # Hide console , need ```pip install pywin32```
 import win32gui, win32con
-the_program_to_hide = win32gui.GetForegroundWindow()
-win32gui.ShowWindow(the_program_to_hide, win32con.SW_HIDE)
+#the_program_to_hide = win32gui.GetForegroundWindow()
+#win32gui.ShowWindow(the_program_to_hide, win32con.SW_HIDE)
 
 VERSION = "20220304"
 # Read config from GUIcfg.txt
