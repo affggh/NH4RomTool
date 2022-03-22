@@ -1,6 +1,7 @@
 /* C source file written by affggh */
 
 #include <iostream>
+#include <fstream>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -89,6 +90,8 @@ int main (int argc, char *argv[]) {
 		Type = "vbmeta";
 	} else if (CompareMagic(buffer, 0, "\xd7\xb7\xab\x1e", 4)==0) {
 		Type = "dtbo";
+	} else if (CompareMagic(buffer, 0, "\xd0\x0d\xfe\xed", 4)==0) {
+		Type = "dtb";
 	} else if(CompareMagic(buffer, 0, "MZ", 2)==0) {
 		Type = "Windows exe file";
 	} else if(CompareMagic(buffer, 0, ".ELF", 4)==0) {
@@ -96,7 +99,23 @@ int main (int argc, char *argv[]) {
 	} else if(CompareMagic(buffer, 0, "ANDROID!", 8)==0) {
 		Type = "boot";
 	} else {
-		Type = "Unknow";
+		// 补充那个合并的super解析
+		ifstream file(fileName, ios::in|ios::binary);
+		char buf[4];
+		file.read(&buf[0], 1);
+		file.seekg(0, ios::beg);
+
+		while(buf[0]=='\x00') {
+			file.read(&buf[0], 1);
+		}
+		file.seekg(-1, ios::cur);
+		file.read(&buf[4], 4);
+		file.close();
+		if(CompareMagic(&buf[4], 0, "\x67\x44\x6c\x61", 4)==0) {
+			Type = "super";
+		} else {
+			Type = "Unknow";
+		}
 	}
 	char* ext;
 	ext = strrchr(fileName, '.');
