@@ -742,6 +742,31 @@ def __smartUnpack():
                         statusend()
                     th = threading.Thread(target=__dsimg2img)
                     th.start()
+                if filetype == "dat":
+                    showinfo("检测到dat,使用sdat2img 且自动在文件所在目录选择transfer.list文件")
+                    def __dsdat():
+                        pname = os.basename(filename.get()).split(".")[0]
+                        transferpath = os.path.abspath(os.path.dirname(filename.get()))+os.sep+pname+".transfer.list"
+                        if os.access(transpath, os.F_OK):
+                            statusstart()
+                            sdat2img.main(transferpath, filename.get(), WorkDir+os.sep+pname+".img")
+                            statusend()
+                        else:
+                            showinfo("未能在dat文件所在目录找到对应的transfer.list文件")
+                    th = threading.Thread(target=__dsdat)
+                    th.start()
+                if filetype == "br":
+                    showinfo("检测到br格式，使用brotli解压")
+                    def __dbr():
+                        pname = os.basename(filename.get()).replace(".br", "")
+                        if os.access(filename.get(), os.F_OK):
+                            statusstart()
+                            runcmd("brotli -d "+filename.get() +" "+ WorkDir+os.sep+pname)
+                            statusend()
+                        else:
+                            showinfo("震惊，文件怎么会不存在？")
+                    th = threading.Thread(target=__dbr)
+                    th.start()
                 if filetype == "vbmeta":
                     showinfo("检测到vbmtea,此文件不支持解包打包，请前往其他工具修改")
                 if filetype == "dtb":
@@ -749,6 +774,8 @@ def __smartUnpack():
                     dtname = os.path.basename(filename.get())
                     runcmd("dtc -q -I dtb -O dts " + filename.get() +" -o " + WorkDir + os.sep + dtname+".dts")
                     showinfo("反编译dtb完成")
+                if filetype == "zip" or filetype == "7z":
+                    showinfo("请不要用这个工具去解包压缩文件，请使用7zip或者winrar")
                 if filetype == "Unknow":
                     showinfo("文件不受支持")
             # os.chdir(unpackdir)
