@@ -24,19 +24,13 @@ import webbrowser
 sys.path.append(os.path.abspath(os.path.dirname(sys.argv[0])) + "\\pyscripts")
 # import functions I modified
 import utils
-# import sn read board id
 import sn
 import verifysn
-# import ozip decrypt
-import ozip_decrypt  # ozip_decrypt.main(filepath)
-# import get_miui
+import ozip_decrypt
 import get_miui
-# import sdat2img
-import sdat2img
-# import vbpatch
 import vbpatch
-# import imgextractor
 import imgextractor
+import sdat2img
 
 
 # Flag
@@ -648,11 +642,6 @@ def xruncmd():
     runcmd("busybox ash -c \"%s\"" %(cmd))
     usercmd.delete(0, 'end')
 
-def sdat2img():
-    fileChooseWindow("选择.new.dat文件")
-    
-    sdat2img.main(TRANSFER_LIST_FILE, NEW_DATA_FILE, OUTPUT_IMAGE_FILE)
-
 def __smartUnpack():
     fileChooseWindow("选择要智能解包的文件")
     if(WorkDir):
@@ -745,12 +734,13 @@ def __smartUnpack():
                 if filetype == "dat":
                     showinfo("检测到dat,使用sdat2img 且自动在文件所在目录选择transfer.list文件")
                     def __dsdat():
-                        pname = os.basename(filename.get()).split(".")[0]
+                        pname = os.path.basename(filename.get()).split(".")[0]
                         transferpath = os.path.abspath(os.path.dirname(filename.get()))+os.sep+pname+".transfer.list"
-                        if os.access(transpath, os.F_OK):
+                        if os.access(transferpath, os.F_OK):
                             statusstart()
                             sdat2img.main(transferpath, filename.get(), WorkDir+os.sep+pname+".img")
                             statusend()
+                            showinfo("sdat已转换为img")
                         else:
                             showinfo("未能在dat文件所在目录找到对应的transfer.list文件")
                     th = threading.Thread(target=__dsdat)
@@ -758,11 +748,12 @@ def __smartUnpack():
                 if filetype == "br":
                     showinfo("检测到br格式，使用brotli解压")
                     def __dbr():
-                        pname = os.basename(filename.get()).replace(".br", "")
+                        pname = os.path.basename(filename.get()).replace(".br", "")
                         if os.access(filename.get(), os.F_OK):
                             statusstart()
                             runcmd("brotli -d "+filename.get() +" "+ WorkDir+os.sep+pname)
                             statusend()
+                            showinfo("已解压br文件")
                         else:
                             showinfo("震惊，文件怎么会不存在？")
                     th = threading.Thread(target=__dbr)
