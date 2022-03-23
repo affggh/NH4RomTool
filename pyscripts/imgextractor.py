@@ -6,8 +6,9 @@ import shutil
 import re
 import mmap
 # add by affggh for fast create symlink
-import win32api
-import win32con
+if os.name=='nt':
+    import win32api
+    import win32con
 
 
 EXT4_HEADER_MAGIC = 0xED26FF3A

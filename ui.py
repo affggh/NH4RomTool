@@ -385,7 +385,7 @@ def __statusstart():
     #for i in range(len(STATUSSTRINGS)):
         for i in range(33):  # 33是图片帧数
         #statusbar['text'] = STATUSSTRINGS[i]
-            photo = PhotoImage(file='./bin/processing.gif',format='gif -index %i' %(i))
+            photo = PhotoImage(file=LOCALDIR + '\\bin\\processing.gif', format='gif -index %i' %(i))
             statusbar['image'] = photo
             time.sleep(1/18)
             global STATUSON
@@ -686,12 +686,35 @@ def __smartUnpack():
                             showinfo("正在解包boot")
                             os.chdir(unpackdir)
                             runcmd("unpackimg.bat --local %s" %(filename.get()))
+                            os.chdir(LOCALDIR)
                         if i == "dtbo":
-                            showinfo("dtbo暂不支持")
+                            showinfo("使用mkdtboimg解包")
+                            runcmd("mkdtboimg.exe dump " + filename.get() + " -b " + unpackdir + "\\dtb")
                         if i == "super":
-                            showinfo("showinfo暂不支持")
+                            showinfo("使用 lpunpack 解锁")
+                            def __dsuper():
+                                statusstart()
+                                runcmd("lpunpack " + filename.get() + " " + unpackdir)
+                                statusend()
+                            th = threading.Thread(target=__dsuper)
+                            th.start()
+                if filetype == "sparse":
+                    showinfo("文件类型为sparse, 使用simg2img转换为raw data")
+                    def __dsimg2img():
+                        statusstart()
+                        utils.mkdir(WorkDir + "\\rawimg")
+                        runcmd("simg2img " + filename.get() + " " +WorkDir+"\\rawimg\\"+ os.path.basename(filename.get()))
+                        showinfo("sparse image 转换结束")
+                        statusend()
+                    th = threading.Thread(target=__dsimg2img)
+                    th.start()
                 if filetype == "vbmeta":
                     showinfo("检测到vbmtea,此文件不支持解包打包，请前往其他工具修改")
+                if filetype == "dtb":
+                    showinfo("使用device tree compiler 转换反编译dtb --> dts")
+                    dtname = os.path.basename(filename.get())
+                    runcmd("dtc -q -I dtb -O dts " + filename.get() +" -o " + WorkDir + os.sep + dtname+".dts")
+                    showinfo("反编译dtb完成")
                 if filetype == "Unknow":
                     showinfo("文件不受支持")
             # os.chdir(unpackdir)
@@ -815,6 +838,7 @@ if __name__ == '__main__':
     ttk.Button(tab33, text='PAYLOAD解析', width=10, command=parsePayload, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Button(tab33, text='修补VBMETA关闭校验', width=10, command=patchvbmeta, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
+    ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Button(tab33, text='使用MAGISK_PATCHER', width=10, command=callMagiskPatcher, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
 
