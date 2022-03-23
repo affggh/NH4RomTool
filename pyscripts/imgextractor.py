@@ -5,6 +5,10 @@ import traceback
 import shutil
 import re
 import mmap
+# add by affggh for fast create symlink
+import win32api
+import win32con
+
 
 EXT4_HEADER_MAGIC = 0xED26FF3A
 EXT4_SPARSE_HEADER_LEN = 28
@@ -96,6 +100,23 @@ class Extractor(object):
         if wx == 't': s += 1; w += 1
         return str(s) + str(o) + str(g) + str(w)
 
+    # Add by affggh
+    def __symlink(self, target, file):
+        # 创建一个cygwin可以读取的软连接
+        f = open(file, "wb")
+        magic = b'!<symlink>'
+        for i in magic:
+            s = struct.pack('B', i)
+            f.write(s)
+        f.write(b'\xff\xfe')
+        for i in bytes(target, encoding="ASCII"):
+            s = struct.pack('B', i)
+            f.write(s)
+            f.write(b'\x00')
+        f.write(b'\x00\x00')
+        f.close()
+        win32api.SetFileAttributes(file, win32con.FILE_ATTRIBUTE_SYSTEM) # 设置sys属性
+
     def __ext4extractor(self):
         import ext4, string, struct
         fs_config_file = self.FileName + '_fs_config'
@@ -134,7 +155,7 @@ class Extractor(object):
                     if cap == '' and con == '':
                         tmppath=self.DIR + entry_inode_path
                         if (tmppath).find(' ',1,len(tmppath))>0:
-                            spaces_file=self.BASE_MYDIR + 'TI_config' + os.sep + self.FileName + '_space.txt'
+                            spaces_file=self.BASE_MYDIR + 'config' + os.sep + self.FileName + '_space.txt'
                             if not os.path.isfile(spaces_file):
                                 f = open(spaces_file, 'tw', encoding='utf-8')
                                 self.__appendf(tmppath, spaces_file)
@@ -149,7 +170,7 @@ class Extractor(object):
                         if cap == '':
                             tmppath=self.DIR + entry_inode_path
                             if (tmppath).find(' ',1,len(tmppath))>0:
-                                spaces_file=self.BASE_MYDIR + 'TI_config' + os.sep + self.FileName + '_space.txt'
+                                spaces_file=self.BASE_MYDIR + 'config' + os.sep + self.FileName + '_space.txt'
                                 if not os.path.isfile(spaces_file):
                                     f = open(spaces_file, 'tw', encoding='utf-8')
                                     self.__appendf(tmppath, spaces_file)
@@ -167,7 +188,7 @@ class Extractor(object):
                             if con == '':
                                 tmppath=self.DIR + entry_inode_path
                                 if (tmppath).find(' ',1,len(tmppath))>0:
-                                    spaces_file=self.BASE_MYDIR + 'TI_config' + os.sep + self.FileName + '_space.txt'
+                                    spaces_file=self.BASE_MYDIR + 'config' + os.sep + self.FileName + '_space.txt'
                                     if not os.path.isfile(spaces_file):
                                         f = open(spaces_file, 'tw', encoding='utf-8')
                                         self.__appendf(tmppath, spaces_file)
@@ -181,7 +202,7 @@ class Extractor(object):
                             else:
                                 tmppath=self.DIR + entry_inode_path
                                 if (tmppath).find(' ',1,len(tmppath))>0:
-                                    spaces_file=self.BASE_MYDIR + 'TI_config' + os.sep + self.FileName + '_space.txt'
+                                    spaces_file=self.BASE_MYDIR + 'config' + os.sep + self.FileName + '_space.txt'
                                     if not os.path.isfile(spaces_file):
                                         f = open(spaces_file, 'tw', encoding='utf-8')
                                         self.__appendf(tmppath, spaces_file)
@@ -217,7 +238,7 @@ class Extractor(object):
                     if cap == '' and con == '':
                         tmppath=self.DIR + entry_inode_path
                         if (tmppath).find(' ',1,len(tmppath))>0:
-                            spaces_file=self.BASE_MYDIR + 'TI_config' + os.sep + self.FileName + '_space.txt'
+                            spaces_file=self.BASE_MYDIR + 'config' + os.sep + self.FileName + '_space.txt'
                             if not os.path.isfile(spaces_file):
                                 f = open(spaces_file, 'tw', encoding='utf-8')
                                 self.__appendf(tmppath, spaces_file)
@@ -232,7 +253,7 @@ class Extractor(object):
                         if cap == '':
                             tmppath=self.DIR + entry_inode_path
                             if (tmppath).find(' ',1,len(tmppath))>0:
-                                spaces_file=self.BASE_MYDIR + 'TI_config' + os.sep + self.FileName + '_space.txt'
+                                spaces_file=self.BASE_MYDIR + 'config' + os.sep + self.FileName + '_space.txt'
                                 if not os.path.isfile(spaces_file):
                                     f = open(spaces_file, 'tw', encoding='utf-8')
                                     self.__appendf(tmppath, spaces_file)
@@ -250,7 +271,7 @@ class Extractor(object):
                             if con == '':
                                 tmppath=self.DIR + entry_inode_path
                                 if (tmppath).find(' ',1,len(tmppath))>0:
-                                    spaces_file=self.BASE_MYDIR + 'TI_config' + os.sep + self.FileName + '_space.txt'
+                                    spaces_file=self.BASE_MYDIR + 'config' + os.sep + self.FileName + '_space.txt'
                                     if not os.path.isfile(spaces_file):
                                         f = open(spaces_file, 'tw', encoding='utf-8')
                                         self.__appendf(tmppath, spaces_file)
@@ -264,7 +285,7 @@ class Extractor(object):
                             else:
                                 tmppath=self.DIR + entry_inode_path
                                 if (tmppath).find(' ',1,len(tmppath))>0:
-                                    spaces_file=self.BASE_MYDIR + 'TI_config' + os.sep + self.FileName + '_space.txt'
+                                    spaces_file=self.BASE_MYDIR + 'config' + os.sep + self.FileName + '_space.txt'
                                     if not os.path.isfile(spaces_file):
                                         f = open(spaces_file, 'tw', encoding='utf-8')
                                         self.__appendf(tmppath, spaces_file)
@@ -285,7 +306,7 @@ class Extractor(object):
                         if cap == '' and con == '':
                             tmppath=self.DIR + entry_inode_path
                             if (tmppath).find(' ',1,len(tmppath))>0:
-                                spaces_file=self.BASE_MYDIR + 'TI_config' + os.sep + self.FileName + '_space.txt'
+                                spaces_file=self.BASE_MYDIR + 'config' + os.sep + self.FileName + '_space.txt'
                                 if not os.path.isfile(spaces_file):
                                     f = open(spaces_file, 'tw', encoding='utf-8')
                                     self.__appendf(tmppath, spaces_file)
@@ -300,7 +321,7 @@ class Extractor(object):
                             if cap == '':
                                 tmppath=self.DIR + entry_inode_path
                                 if (tmppath).find(' ',1,len(tmppath))>0:
-                                    spaces_file=self.BASE_MYDIR + 'TI_config' + os.sep + self.FileName + '_space.txt'
+                                    spaces_file=self.BASE_MYDIR + 'config' + os.sep + self.FileName + '_space.txt'
                                     if not os.path.isfile(spaces_file):
                                         f = open(spaces_file, 'tw', encoding='utf-8')
                                         self.__appendf(tmppath, spaces_file)
@@ -318,7 +339,7 @@ class Extractor(object):
                                 if con == '':
                                     tmppath=self.DIR + entry_inode_path
                                     if (tmppath).find(' ',1,len(tmppath))>0:
-                                        spaces_file=self.BASE_MYDIR + 'TI_config' + os.sep + self.FileName + '_space.txt'
+                                        spaces_file=self.BASE_MYDIR + 'config' + os.sep + self.FileName + '_space.txt'
                                         if not os.path.isfile(spaces_file):
                                             f = open(spaces_file, 'tw', encoding='utf-8')
                                             self.__appendf(tmppath, spaces_file)
@@ -332,7 +353,7 @@ class Extractor(object):
                                 else:
                                     tmppath=self.DIR + entry_inode_path
                                     if (tmppath).find(' ',1,len(tmppath))>0:
-                                        spaces_file=self.BASE_MYDIR + 'TI_config' + os.sep + self.FileName + '_space.txt'
+                                        spaces_file=self.BASE_MYDIR + 'config' + os.sep + self.FileName + '_space.txt'
                                         if not os.path.isfile(spaces_file):
                                             f = open(spaces_file, 'tw', encoding='utf-8')
                                             self.__appendf(tmppath, spaces_file)
@@ -359,12 +380,7 @@ class Extractor(object):
                         if os.name == 'posix':
                             os.symlink(link_target, target)
                         if os.name == 'nt':
-                            with open(target.replace('/', os.sep), 'wb') as out:
-                                tmp = bytes.fromhex('213C73796D6C696E6B3EFFFE')
-                                for index in list(link_target):
-                                    tmp = tmp + struct.pack('>sx', index.encode('utf-8'))
-                                out.write(tmp + struct.pack('xx'))
-                                os.system('attrib +s "%s"' % target.replace('/', os.sep))
+                            self.__symlink(link_target, target)
                         if not all(c in string.printable for c in link_target):
                             pass
                         if entry_inode_path[1:] == entry_name or link_target[1:] == entry_name:
@@ -380,7 +396,7 @@ class Extractor(object):
                                 if cap == '' and con == '':
                                     tmppath=self.DIR + entry_inode_path
                                     if (tmppath).find(' ',1,len(tmppath))>0:
-                                        spaces_file=self.BASE_MYDIR + 'TI_config' + os.sep + self.FileName + '_space.txt'
+                                        spaces_file=self.BASE_MYDIR + 'config' + os.sep + self.FileName + '_space.txt'
                                         if not os.path.isfile(spaces_file):
                                             f = open(spaces_file, 'tw', encoding='utf-8')
                                             self.__appendf(tmppath, spaces_file)
@@ -395,7 +411,7 @@ class Extractor(object):
                                     if cap == '':
                                         tmppath=self.DIR + entry_inode_path
                                         if (tmppath).find(' ',1,len(tmppath))>0:
-                                            spaces_file=self.BASE_MYDIR + 'TI_config' + os.sep + self.FileName + '_space.txt'
+                                            spaces_file=self.BASE_MYDIR + 'config' + os.sep + self.FileName + '_space.txt'
                                             if not os.path.isfile(spaces_file):
                                                 f = open(spaces_file, 'tw', encoding='utf-8')
                                                 self.__appendf(tmppath, spaces_file)
@@ -413,7 +429,7 @@ class Extractor(object):
                                         if con == '':
                                             tmppath=self.DIR + entry_inode_path
                                             if (tmppath).find(' ',1,len(tmppath))>0:
-                                                spaces_file=self.BASE_MYDIR + 'TI_config' + os.sep + self.FileName + '_space.txt'
+                                                spaces_file=self.BASE_MYDIR + 'config' + os.sep + self.FileName + '_space.txt'
                                                 if not os.path.isfile(spaces_file):
                                                     f = open(spaces_file, 'tw', encoding='utf-8')
                                                     self.__appendf(tmppath, spaces_file)
@@ -427,7 +443,7 @@ class Extractor(object):
                                         else:
                                             tmppath=self.DIR + entry_inode_path
                                             if (tmppath).find(' ',1,len(tmppath))>0:
-                                                spaces_file=self.BASE_MYDIR + 'TI_config' + os.sep + self.FileName + '_space.txt'
+                                                spaces_file=self.BASE_MYDIR + 'config' + os.sep + self.FileName + '_space.txt'
                                                 if not os.path.isfile(spaces_file):
                                                     f = open(spaces_file, 'tw', encoding='utf-8')
                                                     self.__appendf(tmppath, spaces_file)
@@ -444,12 +460,7 @@ class Extractor(object):
                                 if os.name == 'posix':
                                     os.symlink(link_target, target)
                                 if os.name == 'nt':
-                                    with open(target.replace('/', os.sep), 'wb') as out:
-                                        tmp = bytes.fromhex('213C73796D6C696E6B3EFFFE')
-                                        for index in list(link_target):
-                                            tmp = tmp + struct.pack('>sx', index.encode('utf-8'))
-                                        out.write(tmp + struct.pack('xx'))
-                                        os.system('attrib +s %s' % target.replace('/', os.sep))
+                                    self.__symlink(link_target, target)
                             else:
                                 pass
                         except:
@@ -593,13 +604,14 @@ class Extractor(object):
                 pass
 
     def checkSignOffset(self, file):
-        size=os.stat(file.name).st_size
-        if size <= 52428800:
-            mm = mmap.mmap(file.fileno(),0 , access=mmap.ACCESS_READ)
-        else:
-            mm = mmap.mmap(file.fileno(),52428800 , access=mmap.ACCESS_READ)  # 52428800=50Mb
-        offset = mm.find(struct.pack('<L', EXT4_HEADER_MAGIC))
-        return offset
+        # size=os.stat(file.name).st_size
+        # if size <= 52428800:
+            # mm = mmap.mmap(file.fileno(),0 , access=mmap.ACCESS_READ)
+        # else:
+            # mm = mmap.mmap(file.fileno(),52428800 , access=mmap.ACCESS_READ)  # 52428800=50Mb
+        # offset = mm.find(struct.pack('<L', EXT4_HEADER_MAGIC))
+        #return offset
+        return 0
 
     def __getTypeTarget(self, target):
         filename, file_extension = os.path.splitext(target)
@@ -623,10 +635,8 @@ class Extractor(object):
         self.MYFileName = os.path.basename(self.OUTPUT_IMAGE_FILE).replace(".img", "")
         self.FileName = self.__file_name(os.path.basename(target))
         target_type = self.__getTypeTarget(target)
-        if sys.argv.__len__() == 3:
-            self.CONFING_DIR = sys.argv[2] + os.sep + 'TI_config'
-        else:
-            self.CONFING_DIR = 'out' + os.sep + 'TI_config'        
+        # Changed by affggh
+        self.CONFING_DIR = output_dir + os.sep + ".." + os.sep + "config"
         if target_type == 'simg':
             print(".....Convert %s to %s" % (os.path.basename(target), os.path.basename(target).replace(".img", ".raw.img")))
             self.__converSimgToImg(target)

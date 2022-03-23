@@ -1,0 +1,1 @@
+@%~dp0AIK\repackimg.bat %*

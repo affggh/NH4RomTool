@@ -17,6 +17,9 @@ Free Rom Unpack and Repack tool on windows !!!
 ***修补vbmeta***
 ## 用法
 ``` Batchfile
+:: 设置python的运行环境
+utils.bat pysetup
+:: 运行主界面
 python ui.py
 ```
     

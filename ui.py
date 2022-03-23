@@ -21,7 +21,7 @@ import threading
 import time
 import webbrowser
 # add pyscripts into sys path
-sys.path.append(".\\pyscripts")
+sys.path.append(os.path.abspath(os.path.dirname(sys.argv[0])) + "\\pyscripts")
 # import functions I modified
 import utils
 # import sn read board id
@@ -31,10 +31,12 @@ import verifysn
 import ozip_decrypt  # ozip_decrypt.main(filepath)
 # import get_miui
 import get_miui
-#import sdat2img
+# import sdat2img
 import sdat2img
-#import vbpatch
+# import vbpatch
 import vbpatch
+# import imgextractor
+import imgextractor
 
 
 # Flag
@@ -46,7 +48,7 @@ TEXTREADONLY = True             # 文本框只读
 TEXTSHOWBANNER = True           # 展示那个文本框的字符画
 USEMYSTD = False                # 输出重定向到Text控件
 SHOWSHIJU = False               # 展示诗句
-USESTATUSBAR = True            # 使用状态栏（并不好用）
+USESTATUSBAR = True             # 使用状态栏（并不好用）
 VERIFYPROG = False              # 程序验证（本来打算恰烂钱的）
 ALLOWMODIFYCMD = True           # 提供一个可以输入任意命令的框
 EXECPATH = ".\\bin"             # 临时添加可执行程序目录到系统变量
@@ -135,11 +137,11 @@ root.geometry("%sx%s" %(width,height))
 root.title(WINDOWTITLE)
 
 # Set images
-LOGOIMG = tk.PhotoImage(file=".\\bin\\logo.png")
-ALIPAYIMG = tk.PhotoImage(file=".\\bin\\alipay.png")
-WECHATIMG = tk.PhotoImage(file=".\\bin\\wechat.png")
-ALIREDPACIMG = tk.PhotoImage(file=".\\bin\\zfbhb.png")
-DEFAULTSTATUS = tk.PhotoImage(file=".\\bin\\processdone.png")
+LOGOIMG = tk.PhotoImage(file=LOCALDIR + ".\\bin\\logo.png")
+ALIPAYIMG = tk.PhotoImage(file=LOCALDIR + ".\\bin\\alipay.png")
+WECHATIMG = tk.PhotoImage(file=LOCALDIR + ".\\bin\\wechat.png")
+ALIREDPACIMG = tk.PhotoImage(file=LOCALDIR + ".\\bin\\zfbhb.png")
+DEFAULTSTATUS = tk.PhotoImage(file=LOCALDIR + ".\\bin\\processdone.png")
 
 global WorkDir
 WorkDir = False
@@ -385,7 +387,7 @@ def __statusstart():
         #statusbar['text'] = STATUSSTRINGS[i]
             photo = PhotoImage(file='./bin/processing.gif',format='gif -index %i' %(i))
             statusbar['image'] = photo
-            time.sleep(1/10)
+            time.sleep(1/18)
             global STATUSON
         if(STATUSON):
             break
@@ -617,16 +619,90 @@ def sdat2img():
     
     sdat2img.main(TRANSFER_LIST_FILE, NEW_DATA_FILE, OUTPUT_IMAGE_FILE)
 
-def dumppayload():
+def __smartUnpack():
+    fileChooseWindow("选择要智能解包的文件")
     if(WorkDir):
-        fileChooseWindow("选择payload.bin文件")
         if(os.access(filename.get(),os.F_OK)):
-            showinfo("正在解包payload")
-            threading.Thread(target=runcmd, args=["python .\\bin\\payload_dumper.py %s --out %s\\output" %(filename.get(),WorkDir)], daemon=True).start()
+            filetype = returnoutput("gettype -i " + filename.get()).replace('\r\n', '')  
+            # for windows , end of line basicly is \x0a\x0d which is \r\n
+            showinfo("智能识别文件类型为 ： " + filetype)
+            unpackdir = os.path.abspath(WorkDir + "/" + filetype)
+            if filetype == "ozip":
+                showinfo("正在解密ozip")
+                def __dozip():
+                    statusstart()
+                    ozip_decrypt.main(filename.get())
+                    showinfo("解密完成")
+                    statusend()
+                th = threading.Thread(target=__dozip)
+                th.start()
+            # list of create new folder
+            if filetype == "ext" or filetype == "erofs":
+                dirname = os.path.basename(filename.get()).split(".")[0]
+                def __eext():
+                    showinfo("正在解包 : " + filename.get())
+                    showinfo("使用imgextractor")
+                    statusstart()
+                    imgextractor.Extractor().main(filename.get(),WorkDir + os.sep + dirname + os.sep + os.path.basename(filename.get()).split('.')[0])
+                    statusend()
+                def __eerofs():
+                    showinfo("正在解包 : " + filename.get())
+                    showinfo("使用erofsUnpackRust")
+                    statusstart()
+                    runcmd("erofsUnpackRust.exe " + filename.get() + " " + WorkDir + os.sep + dirname)
+                    statusend()
+                showinfo("在工作目录创建解包目录 ：" + dirname)
+                if os.path.isdir(os.path.abspath(WorkDir) + "/" + dirname):
+                    showinfo("文件夹存在，正在删除")
+                    shutil.rmtree(os.path.abspath(WorkDir) + "/" + dirname)
+                utils.mkdir(os.path.abspath(WorkDir) + "/" + dirname)
+                
+                if filetype == "ext":
+                    th = threading.Thread(target=__eext)
+                    th.start()
+                if filetype == "erofs":
+                    th = threading.Thread(target=__eerofs)
+                    th.start()
+                    
+            else:
+                def __dpayload():
+                    statusstart()
+                    t = threading.Thread(target=runcmd, args=["python .\\bin\\payload_dumper.py %s --out %s\\payload" %(filename.get(),WorkDir)], daemon=True)
+                    t.start()
+                    t.join()
+                    statusend()
+                for i in ["super", "dtbo", "boot", "payload"]:
+                    if filetype == i:
+                        showinfo("在工作目录创建解包目录 ： "+ i)
+                        if os.path.isdir(unpackdir):
+                            showinfo("文件夹存在，正在删除")
+                            shutil.rmtree(unpackdir)
+                        utils.mkdir(unpackdir)
+                        if i == "payload":
+                            showinfo("正在解包payload")
+                            th = threading.Thread(target=__dpayload)
+                            th.start()
+                        if i == "boot":
+                            showinfo("正在解包boot")
+                            os.chdir(unpackdir)
+                            runcmd("unpackimg.bat --local %s" %(filename.get()))
+                        if i == "dtbo":
+                            showinfo("dtbo暂不支持")
+                        if i == "super":
+                            showinfo("showinfo暂不支持")
+                if filetype == "vbmeta":
+                    showinfo("检测到vbmtea,此文件不支持解包打包，请前往其他工具修改")
+                if filetype == "Unknow":
+                    showinfo("文件不受支持")
+            # os.chdir(unpackdir)
         else:
             showinfo("文件不存在")
     else:
         showinfo("请先选择工作目录")
+
+def smartUnpack():
+    T = threading.Thread(target=__smartUnpack, daemon=True)
+    T.start()
 
 def Test():
     showinfo("Test function")
@@ -716,7 +792,7 @@ if __name__ == '__main__':
     # tab21 // Unpack
     tab21 = ttk.LabelFrame(tab2, text="解包", labelanchor="nw", relief=SUNKEN, borderwidth=1)
     ttk.Button(tab21, text='解压', width=10, command=unzipfile,style='primiary.Outline.TButton').grid(row=0, column=0, padx='10', pady='8')
-    ttk.Button(tab21, text='PAYLOAD', width=10, command=dumppayload,style='primiary.Outline.TButton').grid(row=0, column=1, padx='10', pady='8')
+    ttk.Button(tab21, text='万能解包', width=10, command=smartUnpack,style='primiary.Outline.TButton').grid(row=0, column=1, padx='10', pady='8')
     
     # tab22 // Repack
     tab22 = ttk.LabelFrame(tab2, text="打包", labelanchor="nw", relief=SUNKEN, borderwidth=1)
