@@ -148,6 +148,7 @@ WorkDir = False
 
 # Var
 filename = tk.StringVar()
+directoryname = tk.StringVar()
 inputvar = tk.StringVar()
 if(ALLOWMODIFYCMD):
     USERCMD = tk.StringVar()
@@ -278,6 +279,11 @@ def selectFile():
     filename.set(filepath.replace('/', '\\'))      # 设置变量filename的值
     showinfo("选择文件为：\n%s" %(filepath.replace('/', '\\')))
 
+def selectDir():
+    dirpath = askdirectory()                   # 选择文件夹
+    directoryname.set(dirpath.replace('/', '\\'))
+    showinfo("选择文件夹为：\n%s" %(dirpath.replace('/', '\\')))
+
 def about():
     root2 = tk.Toplevel()
     curWidth = 300
@@ -354,6 +360,30 @@ def fileChooseWindow(tips):
     ent.pack(side=TOP, expand=NO, padx=0, pady=20)
     ttk.Button(chooseWindow, text='确认', width=15, command=chooseWindow.destroy,style='primiary.Outline.TButton').pack(side=RIGHT, expand=YES, padx=5, pady=5)
     ttk.Button(chooseWindow, text='选择文件', width=15, command=lambda:[selectFile(),chooseWindow.destroy()],style='primiary.TButton').pack(side=RIGHT, expand=YES, padx=5,  pady=5)
+    chooseWindow.wait_window()
+
+def dirChooseWindow(tips):
+    chooseWindow = tk.Toplevel()
+    curWidth = 400
+    curHight = 120
+    # 获取屏幕宽度和高度
+    scn_w, scn_h = root.maxsize()
+    # print(scn_w, scn_h)
+    # 计算中心坐标
+    cen_x = (scn_w - curWidth) / 2
+    cen_y = (scn_h - curHight) / 2
+    # print(cen_x, cen_y)
+
+    # 设置窗口初始大小和位置
+    size_xy = '%dx%d+%d+%d' % (curWidth, curHight, cen_x, cen_y)
+    chooseWindow.geometry(size_xy)
+    #chooseWindow.geometry("300x180")
+    chooseWindow.resizable(0,0) # 设置最大化窗口不可用
+    chooseWindow.title(tips)
+    ent = ttk.Entry(chooseWindow,textvariable=directoryname,width=50)
+    ent.pack(side=TOP, expand=NO, padx=0, pady=20)
+    ttk.Button(chooseWindow, text='确认', width=15, command=chooseWindow.destroy,style='primiary.Outline.TButton').pack(side=RIGHT, expand=YES, padx=5, pady=5)
+    ttk.Button(chooseWindow, text='选择文件夹', width=15, command=lambda:[selectDir(),chooseWindow.destroy()],style='primiary.TButton').pack(side=RIGHT, expand=YES, padx=5,  pady=5)
     chooseWindow.wait_window()
 
 def change_theme(var):
@@ -521,7 +551,9 @@ def __unzipfile():
         fileChooseWindow("选择要解压的文件")
         if(os.access(filename.get(), os.F_OK)):
             showinfo("正在解压文件：" + filename.get())
+            statusstart()
             MyThread(utils.unzip_file(filename.get(), WorkDir + "\\rom"))
+            statusend()
             showinfo("解压完成")
         else:
             showinfo("Error : 文件不存在")
@@ -532,20 +564,22 @@ def unzipfile():
     if(WorkDir):
         if(os.access(WorkDir + "\\rom", os.F_OK)):
             shutil.rmtree(WorkDir + "\\rom")
-    __unzipfile()
+    threading.Thread(target=__unzipfile).start()
 
 def __zipcompressfile():
     showinfo("输入生成的文件名")
     userInputWindow()
     if(WorkDir):
         showinfo("正在压缩 ：" + inputvar.get() + ".zip")
+        statusstart()
         MyThread(utils.zip_file(inputvar.get()+".zip", WorkDir + "\\rom"))
+        statusend()
         showinfo("压缩完成")
     else:
         showinfo("Error : 请先选择工作目录")
 
 def zipcompressfile():
-    __zipcompressfile
+    threading.Thread(target=__zipcompressfile).start()
 
 def __xruncmd(event):
     cmd = USERCMD.get()
@@ -822,7 +856,7 @@ if __name__ == '__main__':
     ttk.Button(tab22, text='压缩', width=10, command=zipcompressfile,style='primiary.Outline.TButton').grid(row=0, column=0, padx='10', pady='8')
     
     # pack tab2
-    tab21.pack(side=TOP, fill=BOTH, expand=YES)
+    tab21.pack(side=TOP, fill=BOTH, expand=NO)
     tab22.pack(side=TOP, fill=BOTH, expand=YES)
 
     # tab3
