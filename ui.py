@@ -34,7 +34,7 @@ import sdat2img
 
 
 # Flag
-DEBUG = True                    # 显示调试信息
+DEBUG = False                    # 显示调试信息
 HIDE_CONSOLE = False            # 隐藏控制台
 MENUBAR = True                  # 菜单栏
 USEMYLOGO = True                # 使用自己的logo
@@ -779,6 +779,17 @@ def smartUnpack():
     T = threading.Thread(target=__smartUnpack, daemon=True)
     T.start()
 
+def repackboot():
+    dirChooseWindow("选择你要打包的目录 based on android image kitchen")
+    if os.path.isdir(directoryname.get()):
+        os.chdir(directoryname.get())
+        runcmd("repackimg.bat --local")
+        os.chdir(LOCALDIR)
+    else:
+        showinfo("文件夹不存在")
+
+    
+
 def Test():
     showinfo("Test function")
 
@@ -872,6 +883,7 @@ if __name__ == '__main__':
     # tab22 // Repack
     tab22 = ttk.LabelFrame(tab2, text="打包", labelanchor="nw", relief=SUNKEN, borderwidth=1)
     ttk.Button(tab22, text='压缩', width=10, command=zipcompressfile,style='primiary.Outline.TButton').grid(row=0, column=0, padx='10', pady='8')
+    ttk.Button(tab22, text='boot', width=10, command=repackboot,style='primiary.Outline.TButton').grid(row=0, column=1, padx='10', pady='8')
     
     # pack tab2
     tab21.pack(side=TOP, fill=BOTH, expand=NO)
@@ -936,7 +948,7 @@ if __name__ == '__main__':
         showinfo("        Version : %s" %(VERSION))
         showinfo("        Author  : %s" %(AUTHOR))
         showinfo("        LICENSE : %s" %(LICENSE))
-    showinfo("🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵")
+    # showinfo("🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵")
 
     root.update()
     root.mainloop()
