@@ -31,6 +31,7 @@ import get_miui
 import vbpatch
 import imgextractor
 import sdat2img
+import fspatch
 
 
 # Flag
@@ -637,6 +638,12 @@ def callMagiskPatcher():
     t = threading.Thread(target=__callMagiskPatcher)
     t.start()
 
+def patchfsconfig():
+    dirChooseWindow("选择你要打包的目录")
+    fileChooseWindow("选择fs_config文件")
+    fspatch.main(directoryname.get(), filename.get())
+    showinfo("修补完成")
+
 def xruncmd():
     cmd = USERCMD.get()
     runcmd("busybox ash -c \"%s\"" %(cmd))
@@ -788,7 +795,7 @@ def repackboot():
     else:
         showinfo("文件夹不存在")
 
-    
+
 
 def Test():
     showinfo("Test function")
@@ -904,6 +911,8 @@ if __name__ == '__main__':
     ttk.Button(tab33, text='修补VBMETA关闭校验', width=10, command=patchvbmeta, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Button(tab33, text='使用MAGISK_PATCHER', width=10, command=callMagiskPatcher, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
+    ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
+    ttk.Button(tab33, text='修补fs_config文件', width=10, command=patchfsconfig, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
 
     # ScrolledText
