@@ -35,7 +35,7 @@ import fspatch
 
 
 # Flag
-DEBUG = True                    # 显示调试信息
+DEBUG = False                    # 显示调试信息
 HIDE_CONSOLE = False            # 隐藏控制台
 MENUBAR = True                  # 菜单栏
 USEMYLOGO = True                # 使用自己的logo
@@ -404,6 +404,43 @@ def getWorkDir():
     d = utils.listDirHeader('.\\','NH4_')
     for item in d:
         table.insert('','end',values=item)
+
+def clearWorkDir():
+    if not (WorkDir):
+        showinfo("当前未选择任何目录")
+    else:
+        showinfo("将清理: " + WorkDir)
+        try:
+            removeDir_EX(os.getcwd() + '\\' + WorkDir)
+            # showinfo(os.getcwd() + '\\' + WorkDir)
+        except IOError:
+            showinfo("清理失败, 请检查是否有程序正在占用它...?")
+        else:
+            showinfo("清理成功, 正在刷新工作目录")
+
+
+# removeButSaveCurrentDir  add by azwhikaru 20220329
+def removeDir_EX(workDirEX):
+    for root, dirs, files in os.walk(workDirEX, topdown=False):
+        for name in files:
+            os.remove(os.path.join(root, name))
+        for name in dirs:
+            os.rmdir(os.path.join(root, name))
+
+
+def deleteWorkDir():
+    if not (WorkDir):
+        showinfo("当前未选择任何目录")
+    else:
+        showinfo("将删除: " + WorkDir)
+        try:
+            shutil.rmtree(os.getcwd() + '\\' + WorkDir)
+            # showinfo(os.getcwd() + '\\' + WorkDir)
+        except IOError:
+            showinfo("删除失败, 请检查是否有程序正在占用它...?")
+        else:
+            showinfo("删除成功, 正在刷新工作目录")
+            getWorkDir()
 
 def statusend():
     if(USESTATUSBAR):
@@ -939,7 +976,12 @@ if __name__ == '__main__':
     ttk.Button(tab12, text='删除目录', width=10, command=rmWorkDir,style='primiary.Outline.TButton').grid(row=0, column=1, padx='10', pady='8')
     ttk.Button(tab12, text='新建目录', width=10, command=mkWorkdir,style='primiary.Outline.TButton').grid(row=1, column=0, padx='10', pady='8')
     ttk.Button(tab12, text='刷新目录', width=10, command=getWorkDir,style='primiary.Outline.TButton').grid(row=1, column=1, padx='10', pady='8')
-    
+    ttk.Button(tab12, text='清理目录', width=10, command=clearWorkDir,style='primiary.Outline.TButton').grid(row=2, column=0, padx='10', pady='8')
+    ttk.Button(tab12, text='删除目录', width=10, command=deleteWorkDir,style='primiary.Outline.TButton').grid(row=2, column=1, padx='10', pady='8')
+    # clearWorkdir : delete all files/dirs **under** workDir
+    # deleteWorkdir : **delete** this workDir
+
+
     # Pack Buttons
     tab12.pack(side=BOTTOM, fill=BOTH, expand=YES, anchor=CENTER)
     
