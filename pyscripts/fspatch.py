@@ -75,25 +75,37 @@ def fspatch(fsfile, filename, dirpath):  # 接收两个字典对比
                 filepath = os.path.abspath(dirpath+os.sep+".."+os.sep+i)
             if os.path.isdir(filepath):
                 uid = '0'
-                gid = '2000'
-                mode = '0755'
+                if (i.find("system/bin")!=-1 or i.find("system/xbin")!=-1):
+                    gid = '2000'
+                elif (i.find("vendor/bin")!=-1):
+                    gid = '2000'
+                else:
+                    gid = '0'
+                mode = '0755'  # dir path always 755
                 config = [uid, gid, mode]
             elif islink(filepath):
-                if (i.find("/bin")!=-1) or (i.find("/xbin")!=-1):
-                    uid = '0'
+                uid = '0'
+                if (i.find("system/bin")!=-1) or (i.find("system/xbin")!=-1) or (i.find("vendor/bin")!=-1):
                     gid = '2000'
-                    mode = '0755'
-                    link = islink(filepath)
                 else:
-                    uid = '0'
                     gid = '0'
-                    mode = '0644'
-                    link = islink(filepath)
+                if (i.find("/bin")!=-1) or (i.find("/xbin")!=-1):
+                    mode = '0755'
+                elif (i.find(".sh")!=-1):
+                    mode = "0750"
+                else:
+                    mode = "0644"
+                link = islink(filepath)
                 config = [uid, gid, mode, link]
             elif (i.find("/bin")!=-1) or (i.find("/xbin")!=-1):
                 uid = '0'
-                gid = '2000'
-                mode = '0755'
+                if (i.find("system/bin")!=-1) or (i.find("system/xbin")!=-1) or (i.find("vendor/bin")!=-1):
+                    gid = '2000'
+                else:
+                    gid = '0'
+                    mode = '0755'
+                if (i.find(".sh")!=-1):
+                    mode = "0750"
                 config = [uid, gid, mode]
             else:
                 uid = '0'
@@ -101,6 +113,10 @@ def fspatch(fsfile, filename, dirpath):  # 接收两个字典对比
                 mode = '0644'
                 config = [uid, gid, mode]
             newfs.update({i: config})
+            if len(config) < 4:
+                print("Add file [%s] fs_config: uid[%s] gid[%s] mode[%s]" %(i,config[0],config[1],config[2]))
+            else:
+                print("Add file [%s] fs_config: uid[%s] gid[%s] mode[%s] extra[%s]" %(i,config[0],config[1],config[2],config[3]))
     return newfs
         
 def writetofile(file, newfsconfig):
@@ -128,9 +144,14 @@ def Usage():
 
 if __name__ == '__main__':
     import sys
+    global VERBOSE
+    VERBOSE = False
     if len(sys.argv) < 3:
-        Usage
+        Usage()
         sys.exit()
+    if len(sys.argv) > 3:
+        if sys.argv[3] == '-i':
+            VERBOSE = True
     if (os.path.isdir(sys.argv[1]) or os.path.isfile(sys.argv[2])):
         print("FSPATCH by [%s]\nLICENES [%s]\nVERSION [%s]" %(AUTHOR, LICENES, VERSION))
         main(sys.argv[1], sys.argv[2])

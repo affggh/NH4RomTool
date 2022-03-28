@@ -1,0 +1,7 @@
+{
+   "AUTOMUTIIMGSIZE": true,
+   "MODIFIEDIMGSIZE": "2684254560",
+   "EXTREPACKTYPE": "ext4",
+   "EXTBLOCKSIZE": "4096",
+   "EXTFUEATURE": "^has_journal"
+}

@@ -1,2 +1,0 @@
-THEME=light
-DONATE_BUTTON=True

@@ -35,7 +35,7 @@ import fspatch
 
 
 # Flag
-DEBUG = False                    # 显示调试信息
+DEBUG = True                    # 显示调试信息
 HIDE_CONSOLE = False            # 隐藏控制台
 MENUBAR = True                  # 菜单栏
 USEMYLOGO = True                # 使用自己的logo
@@ -106,6 +106,15 @@ LOGOICO = ".\\bin\\logo.ico"
 BANNER = ".\\bin\\banner"
 TEXTFONT = ['Arial', 5]
 LOCALDIR = os.path.abspath(os.path.dirname(sys.argv[0]))
+
+# ui config This is for repack tool to detect
+if os.access(LOCALDIR+os.sep+"config.json", os.F_OK):
+    with open("config.json", encoding='utf-8') as f:
+        global UICONFIG
+        UICONFIG = json.load(f)
+else:
+    print("config.json is missing")
+    sys.exit()
 
 if(USESTATUSBAR):
     STATUSSTRINGS = ['-', '\\', '|', '/', '-']
@@ -474,6 +483,18 @@ def ozipDecrypt():
     else:
         showinfo("Error : 文件不存在")
 
+def __ozipEncrypt():
+    fileChooseWindow("加密ozip")
+    if(os.access(filename.get(), os.F_OK)):
+        statusstart()
+        runcmd("zip2ozip "+filename.get())
+        statusend()
+    else:
+        showinfo("Error ：文件不存在")
+
+def ozipEncrypt():
+    threading.Thread(target=__ozipEncrypt).start()
+
 def getMiuiWindow():
     def __downloadurl(url):
         webbrowser.open(url)
@@ -622,21 +643,6 @@ def patchvbmeta():
             showinfo("文件并非vbmeta文件")
     else:
         showinfo("文件不存在")
-
-def __callMagiskPatcher():
-    showinfo("正在启动 Magisk Patcher...")
-    filepath = ".\\bin\\magisk_patcher\\MagiskPatcher.py"
-    if(os.access(filepath, os.F_OK)):
-        os.chdir(os.path.dirname(filepath))
-        os.system("python "+"MagiskPatcher.py")
-        os.chdir(LOCALDIR)
-    else:
-        showinfo("文件不存在")
-    # TO-DO add by azwhikaru 20220320
-
-def callMagiskPatcher():
-    t = threading.Thread(target=__callMagiskPatcher)
-    t.start()
 
 def patchfsconfig():
     dirChooseWindow("选择你要打包的目录")
@@ -795,7 +801,48 @@ def repackboot():
     else:
         showinfo("文件夹不存在")
 
+def __repackextimage():
+    if (WorkDir):
+        dirChooseWindow("选择你要打包的目录 例如 ：.\\NH4_test\\vendor\\vendor")
+        fileChooseWindow("选择你要打包目录的fs_config文件")
+        if (os.path.isdir(directoryname.get())):
+            showinfo("修补fs_config文件")
+            fspatch.main(directoryname.get(), filename.get())
+            # Thanks DXY provid info
+            cmd = "busybox ash -c \""
+            if os.path.basename(directoryname.get()).find("odm")!=-1:
+                MUTIIMGSIZE = 1.2
+            else:
+                MUTIIMGSIZE = 1.07
+            if (UICONFIG['AUTOMUTIIMGSIZE']):
+                EXTIMGSIZE = int(utils.getdirsize(directoryname.get())*MUTIIMGSIZE)
+            else:
+                EXTIMGSIZE = UICONFIG['MODIFIEDIMGSIZE']
+            cmd += "MKE2FS_CONFIG=bin/mke2fs.conf E2FSPROGS_FAKE_TIME=1230768000 mke2fs.exe "
+            cmd += "-O %s " %(UICONFIG['EXTFUEATURE'])
+            cmd += "-L %s " %(os.path.basename(directoryname.get()))
+            cmd += "-I 256 "
+            cmd += "-M /%s -m 0 " %(os.path.basename(directoryname.get()))  # mount point
+            cmd += "-t %s " %(UICONFIG['EXTREPACKTYPE'])
+            cmd += "-b %s " %(UICONFIG['EXTBLOCKSIZE'])
+            cmd += "%s/output/%s.img " %(WorkDir, os.path.basename(directoryname.get()))
+            cmd += "%s\"" %(int(EXTIMGSIZE/4096))
+            showinfo("尝试创建目录output")
+            utils.mkdir(WorkDir + os.sep +"output")
+            showinfo("开始打包EXT镜像")
+            statusstart()
+            showinfo(cmd)
+            runcmd(cmd)
+            cmd = "e2fsdroid.exe -e -T 1230768000 -C %s -f %s -a /%s %s/output/%s.img" %(filename.get(), directoryname.get(), os.path.basename(directoryname.get()), WorkDir, os.path.basename(directoryname.get()))
+            runcmd(cmd)
+            statusend()
+            showinfo("打包结束")
+    else:
+        showinfo("请先选择工作目录")
 
+def repackextimage():
+    th = threading.Thread(target=__repackextimage)
+    th.start()
 
 def Test():
     showinfo("Test function")
@@ -844,11 +891,12 @@ if __name__ == '__main__':
     tab3 = ttk.Frame(tabControl)
     tab33 = ScrolledFrame(tab3, autohide=True, width=220)
     tab4 = ttk.Frame(tabControl)
+    # tab44 = ScrolledFrame(tab4, autohide=True, width=220)
 
     tabControl.add(tab1, text="工作目录")
     tabControl.add(tab2, text="打包解包")
     tabControl.add(tab3, text="其他工具")
-    tabControl.add(tab4, text="设置")
+    # tabControl.add(tab4, text="设置")
 
     tab33.pack(side=LEFT, expand=YES, fill=BOTH)
 
@@ -890,7 +938,15 @@ if __name__ == '__main__':
     # tab22 // Repack
     tab22 = ttk.LabelFrame(tab2, text="打包", labelanchor="nw", relief=SUNKEN, borderwidth=1)
     ttk.Button(tab22, text='压缩', width=10, command=zipcompressfile,style='primiary.Outline.TButton').grid(row=0, column=0, padx='10', pady='8')
-    ttk.Button(tab22, text='boot', width=10, command=repackboot,style='primiary.Outline.TButton').grid(row=0, column=1, padx='10', pady='8')
+    ttk.Button(tab22, text='BOOT', width=10, command=repackboot,style='primiary.Outline.TButton').grid(row=0, column=1, padx='10', pady='8')
+    ttk.Button(tab22, text='EXT', width=10, command=repackextimage,style='primiary.Outline.TButton').grid(row=1, column=0, padx='10', pady='8')
+    ttk.Button(tab22, text='EROFS', width=10, command=Test,style='primiary.Outline.TButton').grid(row=1, column=1, padx='10', pady='8')
+    ttk.Button(tab22, text='DTS2DTB', width=10, command=Test,style='primiary.Outline.TButton').grid(row=2, column=0, padx='10', pady='8')
+    ttk.Button(tab22, text='DTBO', width=10, command=Test,style='primiary.Outline.TButton').grid(row=2, column=1, padx='10', pady='8')
+    ttk.Button(tab22, text='SUPER', width=10, command=Test,style='primiary.Outline.TButton').grid(row=3, column=0, padx='10', pady='8')
+    ttk.Button(tab22, text='SPARSE', width=10, command=Test,style='primiary.Outline.TButton').grid(row=3, column=1, padx='10', pady='8')
+    ttk.Button(tab22, text='DAT', width=10, command=Test,style='primiary.Outline.TButton').grid(row=4, column=0, padx='10', pady='8')
+    ttk.Button(tab22, text='BR', width=10, command=Test,style='primiary.Outline.TButton').grid(row=4, column=1, padx='10', pady='8')
     
     # pack tab2
     tab21.pack(side=TOP, fill=BOTH, expand=NO)
@@ -901,6 +957,8 @@ if __name__ == '__main__':
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Button(tab33, text='OZIP解密', width=10, command=ozipDecrypt, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
+    ttk.Button(tab33, text='OZIP加密（没啥用）', width=10, command=ozipEncrypt, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
+    ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Button(tab33, text='MIUI获取', width=10, command=getMiuiWindow, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
     
@@ -909,8 +967,6 @@ if __name__ == '__main__':
     ttk.Button(tab33, text='PAYLOAD解析', width=10, command=parsePayload, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Button(tab33, text='修补VBMETA关闭校验', width=10, command=patchvbmeta, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
-    ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
-    ttk.Button(tab33, text='使用MAGISK_PATCHER', width=10, command=callMagiskPatcher, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Button(tab33, text='修补fs_config文件', width=10, command=patchfsconfig, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
@@ -953,11 +1009,11 @@ if __name__ == '__main__':
 
     if(DEBUG):
         showinfo("Board id : " + sn.get_board_id())
+        showinfo(UICONFIG)
     else:
         showinfo("        Version : %s" %(VERSION))
         showinfo("        Author  : %s" %(AUTHOR))
         showinfo("        LICENSE : %s" %(LICENSE))
-    # showinfo("🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵🥵")
 
     root.update()
     root.mainloop()

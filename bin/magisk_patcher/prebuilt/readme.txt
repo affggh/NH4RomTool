@@ -1,1 +1,0 @@
-default is Magisk-v24.1.apk
