@@ -840,6 +840,23 @@ def __repackextimage():
     else:
         showinfo("请先选择工作目录")
 
+def __repackerofsimage():
+    if WorkDir:
+        dirChooseWindow("选择你要打包的目录 例如 ：.\\NH4_test\\vendor\\vendor")
+        fileChooseWindow("选择你要打包目录的fs_config文件")
+        statusstart()
+        fspatch.main(directoryname.get(), filename.get())
+        cmd = "mkfs.erofs.exe %s/output/%s.img %s -z\"%s\" -T\"1230768000\" --mount-point=/%s --fs-config-file=%s" %(WorkDir, os.path.basename(directoryname.get()), directoryname.get().replace("\\","/"), UICONFIG['EROFSCOMPRESSOR'], os.path.basename(directoryname.get()), filename.get())
+        print(cmd)
+        runcmd(cmd)
+        statusend()
+    else:
+        showinfo("请先选择工作目录")
+
+def repackerofsimage():
+    th = threading.Thread(target=__repackerofsimage)
+    th.start()
+
 def repackextimage():
     th = threading.Thread(target=__repackextimage)
     th.start()
@@ -940,7 +957,7 @@ if __name__ == '__main__':
     ttk.Button(tab22, text='压缩', width=10, command=zipcompressfile,style='primiary.Outline.TButton').grid(row=0, column=0, padx='10', pady='8')
     ttk.Button(tab22, text='BOOT', width=10, command=repackboot,style='primiary.Outline.TButton').grid(row=0, column=1, padx='10', pady='8')
     ttk.Button(tab22, text='EXT', width=10, command=repackextimage,style='primiary.Outline.TButton').grid(row=1, column=0, padx='10', pady='8')
-    ttk.Button(tab22, text='EROFS', width=10, command=Test,style='primiary.Outline.TButton').grid(row=1, column=1, padx='10', pady='8')
+    ttk.Button(tab22, text='EROFS', width=10, command=repackerofsimage,style='primiary.Outline.TButton').grid(row=1, column=1, padx='10', pady='8')
     ttk.Button(tab22, text='DTS2DTB', width=10, command=Test,style='primiary.Outline.TButton').grid(row=2, column=0, padx='10', pady='8')
     ttk.Button(tab22, text='DTBO', width=10, command=Test,style='primiary.Outline.TButton').grid(row=2, column=1, padx='10', pady='8')
     ttk.Button(tab22, text='SUPER', width=10, command=Test,style='primiary.Outline.TButton').grid(row=3, column=0, padx='10', pady='8')
