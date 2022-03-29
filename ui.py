@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import sys
+import glob
 import json
 import base64
 import shutil
@@ -925,6 +926,23 @@ def repackextimage():
     th = threading.Thread(target=__repackextimage)
     th.start()
 
+def __repackDTBO():
+    if WorkDir:
+        dirChooseWindow("选择dtbo文件夹")
+        if not os.path.isdir(WorkDir+os.sep+"output"):
+            utils.mkdir(WorkDir+os.sep+"output")
+        cmd = "mkdtboimg.exe create %s\\output\\dtbo.img " %(WorkDir)
+        for i in range(len(glob.glob(directoryname.get()+os.sep+"*"))):
+            cmd += "%s\\dtb.%s " %(directoryname.get(), i)
+        runcmd(cmd)
+        showinfo("打包结束")
+    else:
+        showinfo("请先选择工作目录")
+
+def repackDTBO():
+    th = threading.Thread(target=__repackDTBO)
+    th.start()
+
 def __repackSparseImage():
     if (WorkDir):
             __repackextimage()
@@ -1042,7 +1060,7 @@ if __name__ == '__main__':
     ttk.Button(tab22, text='EXT', width=10, command=repackextimage,style='primiary.Outline.TButton').grid(row=1, column=0, padx='10', pady='8')
     ttk.Button(tab22, text='EROFS', width=10, command=repackerofsimage,style='primiary.Outline.TButton').grid(row=1, column=1, padx='10', pady='8')
     ttk.Button(tab22, text='DTS2DTB', width=10, command=Test,style='primiary.Outline.TButton').grid(row=2, column=0, padx='10', pady='8')
-    ttk.Button(tab22, text='DTBO', width=10, command=Test,style='primiary.Outline.TButton').grid(row=2, column=1, padx='10', pady='8')
+    ttk.Button(tab22, text='DTBO', width=10, command=repackDTBO,style='primiary.Outline.TButton').grid(row=2, column=1, padx='10', pady='8')
     ttk.Button(tab22, text='SUPER', width=10, command=Test,style='primiary.Outline.TButton').grid(row=3, column=0, padx='10', pady='8')
     ttk.Button(tab22, text='SPARSE', width=10, command=repackSparseImage,style='primiary.Outline.TButton').grid(row=3, column=1, padx='10', pady='8')
     ttk.Button(tab22, text='DAT', width=10, command=Test,style='primiary.Outline.TButton').grid(row=4, column=0, padx='10', pady='8')
