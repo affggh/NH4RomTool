@@ -35,7 +35,7 @@ import fspatch
 
 
 # Flag
-DEBUG = False                    # 显示调试信息
+DEBUG = True                    # 显示调试信息
 HIDE_CONSOLE = False            # 隐藏控制台
 MENUBAR = True                  # 菜单栏
 USEMYLOGO = True                # 使用自己的logo
@@ -426,21 +426,6 @@ def removeDir_EX(workDirEX):
             os.remove(os.path.join(root, name))
         for name in dirs:
             os.rmdir(os.path.join(root, name))
-
-
-def deleteWorkDir():
-    if not (WorkDir):
-        showinfo("当前未选择任何目录")
-    else:
-        showinfo("将删除: " + WorkDir)
-        try:
-            shutil.rmtree(os.getcwd() + '\\' + WorkDir)
-            # showinfo(os.getcwd() + '\\' + WorkDir)
-        except IOError:
-            showinfo("删除失败, 请检查是否有程序正在占用它...?")
-        else:
-            showinfo("删除成功, 正在刷新工作目录")
-            getWorkDir()
 
 def statusend():
     if(USESTATUSBAR):
@@ -898,6 +883,54 @@ def repackextimage():
     th = threading.Thread(target=__repackextimage)
     th.start()
 
+def __repackSparseImage():
+    if (WorkDir):
+        dirChooseWindow("选择你要打包的目录 例如 ：.\\NH4_test\\vendor\\vendor")
+        fileChooseWindow("选择你要打包目录的fs_config文件")
+        if (os.path.isdir(directoryname.get())):
+            showinfo("修补fs_config文件")
+            fspatch.main(directoryname.get(), filename.get())
+            # Thanks DXY provid info
+            cmd = "busybox ash -c \""
+            if os.path.basename(directoryname.get()).find("odm")!=-1:
+                MUTIIMGSIZE = 1.2
+            else:
+                MUTIIMGSIZE = 1.07
+            if (UICONFIG['AUTOMUTIIMGSIZE']):
+                EXTIMGSIZE = int(utils.getdirsize(directoryname.get())*MUTIIMGSIZE)
+            else:
+                EXTIMGSIZE = UICONFIG['MODIFIEDIMGSIZE']
+            cmd += "MKE2FS_CONFIG=bin/mke2fs.conf E2FSPROGS_FAKE_TIME=1230768000 mke2fs.exe "
+            cmd += "-O %s " %(UICONFIG['EXTFUEATURE'])
+            cmd += "-L %s " %(os.path.basename(directoryname.get()))
+            cmd += "-I 256 "
+            cmd += "-M /%s -m 0 " %(os.path.basename(directoryname.get()))  # mount point
+            cmd += "-t %s " %(UICONFIG['EXTREPACKTYPE'])
+            cmd += "-b %s " %(UICONFIG['EXTBLOCKSIZE'])
+            cmd += "%s/output/%s.img " %(WorkDir, os.path.basename(directoryname.get()))
+            cmd += "%s\"" %(int(EXTIMGSIZE/4096))
+            showinfo("尝试创建目录output")
+            utils.mkdir(WorkDir + os.sep +"output")
+            showinfo("开始打包EXT镜像")
+            statusstart()
+            showinfo(cmd)
+            runcmd(cmd)
+            cmd = "e2fsdroid.exe -e -T 1230768000 -C %s -f %s -a /%s %s/output/%s.img" %(filename.get(), directoryname.get(), os.path.basename(directoryname.get()), WorkDir, os.path.basename(directoryname.get()))
+            runcmd(cmd)
+            showinfo("打包结束")
+            showinfo("开始转换EXT镜像为Sparse压缩格式")
+            # showinfo(os.path.basename(directoryname.get()))
+            cmd = "img2simg.exe %s/output/%s.img %s/output/%s_sparse.img" %(WorkDir, os.path.basename(directoryname.get()), WorkDir, os.path.basename(directoryname.get()))
+            runcmd(cmd)
+            showinfo("转换结束")
+            statusend()
+    else:
+        showinfo("请先选择工作目录")
+
+def repackSparseImage():
+    th = threading.Thread(target=__repackSparseImage)
+    th.start()
+
 def Test():
     showinfo("Test function")
 
@@ -977,9 +1010,6 @@ if __name__ == '__main__':
     ttk.Button(tab12, text='新建目录', width=10, command=mkWorkdir,style='primiary.Outline.TButton').grid(row=1, column=0, padx='10', pady='8')
     ttk.Button(tab12, text='刷新目录', width=10, command=getWorkDir,style='primiary.Outline.TButton').grid(row=1, column=1, padx='10', pady='8')
     ttk.Button(tab12, text='清理目录', width=10, command=clearWorkDir,style='primiary.Outline.TButton').grid(row=2, column=0, padx='10', pady='8')
-    ttk.Button(tab12, text='删除目录', width=10, command=deleteWorkDir,style='primiary.Outline.TButton').grid(row=2, column=1, padx='10', pady='8')
-    # clearWorkdir : delete all files/dirs **under** workDir
-    # deleteWorkdir : **delete** this workDir
 
 
     # Pack Buttons
@@ -1003,7 +1033,7 @@ if __name__ == '__main__':
     ttk.Button(tab22, text='DTS2DTB', width=10, command=Test,style='primiary.Outline.TButton').grid(row=2, column=0, padx='10', pady='8')
     ttk.Button(tab22, text='DTBO', width=10, command=Test,style='primiary.Outline.TButton').grid(row=2, column=1, padx='10', pady='8')
     ttk.Button(tab22, text='SUPER', width=10, command=Test,style='primiary.Outline.TButton').grid(row=3, column=0, padx='10', pady='8')
-    ttk.Button(tab22, text='SPARSE', width=10, command=Test,style='primiary.Outline.TButton').grid(row=3, column=1, padx='10', pady='8')
+    ttk.Button(tab22, text='SPARSE', width=10, command=repackSparseImage,style='primiary.Outline.TButton').grid(row=3, column=1, padx='10', pady='8')
     ttk.Button(tab22, text='DAT', width=10, command=Test,style='primiary.Outline.TButton').grid(row=4, column=0, padx='10', pady='8')
     ttk.Button(tab22, text='BR', width=10, command=Test,style='primiary.Outline.TButton').grid(row=4, column=1, padx='10', pady='8')
     
