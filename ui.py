@@ -826,10 +826,19 @@ def repackboot():
 def __repackextimage():
     if (WorkDir):
         dirChooseWindow("选择你要打包的目录 例如 ：.\\NH4_test\\vendor\\vendor")
-        fileChooseWindow("选择你要打包目录的fs_config文件")
+        # Audo choose fs_config
+        showinfo("自动搜寻 fs_config")
+        isFsConfig = findFsConfig(directoryname.get())
+        if isFsConfig != "0":
+            showinfo("自动搜寻 fs_config 完成: " + isFsConfig)
+            fsconfig_path = isFsConfig
+        else:
+            showinfo("自动搜寻 fs_config 失败，请手动选择")
+            fileChooseWindow("选择你要打包目录的fs_config文件")
+            fsconfig_path = filename.get()
         if (os.path.isdir(directoryname.get())):
             showinfo("修补fs_config文件")
-            fspatch.main(directoryname.get(), filename.get())
+            fspatch.main(directoryname.get(), fsconfig_path)
             # Thanks DXY provid info
             cmd = "busybox ash -c \""
             if os.path.basename(directoryname.get()).find("odm")!=-1:
@@ -862,6 +871,14 @@ def __repackextimage():
     else:
         showinfo("请先选择工作目录")
 
+def findFsConfig(Path):
+    parentPath = os.path.dirname(Path)
+    currentPath = os.path.basename(parentPath)
+    if os.path.exists(parentPath + '\config\\' + currentPath + "_fs_config"):
+        return parentPath + '\config\\' + currentPath + "_fs_config"
+    else:
+        return "0"
+
 def __repackerofsimage():
     if WorkDir:
         dirChooseWindow("选择你要打包的目录 例如 ：.\\NH4_test\\vendor\\vendor")
@@ -886,10 +903,19 @@ def repackextimage():
 def __repackSparseImage():
     if (WorkDir):
         dirChooseWindow("选择你要打包的目录 例如 ：.\\NH4_test\\vendor\\vendor")
-        fileChooseWindow("选择你要打包目录的fs_config文件")
+        # Audo choose fs_config
+        showinfo("自动搜寻 fs_config")
+        isFsConfig = findFsConfig(directoryname.get())
+        if isFsConfig != "0":
+            showinfo("自动搜寻 fs_config 完成: " + isFsConfig)
+            fsconfig_path = isFsConfig
+        else:
+            showinfo("自动搜寻 fs_config 失败，请手动选择")
+            fileChooseWindow("选择你要打包目录的fs_config文件")
+            fsconfig_path = filename.get()
         if (os.path.isdir(directoryname.get())):
             showinfo("修补fs_config文件")
-            fspatch.main(directoryname.get(), filename.get())
+            fspatch.main(directoryname.get(), fsconfig_path)
             # Thanks DXY provid info
             cmd = "busybox ash -c \""
             if os.path.basename(directoryname.get()).find("odm")!=-1:
