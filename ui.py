@@ -829,9 +829,13 @@ def __repackextimage():
         # Audo choose fs_config
         showinfo("自动搜寻 fs_config")
         isFsConfig = findFsConfig(directoryname.get())
+        isFileContexts = findFileContexts(directoryname.get())
         if isFsConfig != "0":
             showinfo("自动搜寻 fs_config 完成: " + isFsConfig)
             fsconfig_path = isFsConfig
+        if isFileContexts != "0":
+            showinfo("自动搜寻 file_contexts 完成" + isFileContexts)
+            filecontexts_path = isFileContexts
         else:
             showinfo("自动搜寻 fs_config 失败，请手动选择")
             fileChooseWindow("选择你要打包目录的fs_config文件")
@@ -864,7 +868,7 @@ def __repackextimage():
             statusstart()
             showinfo(cmd)
             runcmd(cmd)
-            cmd = "e2fsdroid.exe -e -T 1230768000 -C %s -f %s -a /%s %s/output/%s.img" %(filename.get(), directoryname.get(), os.path.basename(directoryname.get()), WorkDir, os.path.basename(directoryname.get()))
+            cmd = "e2fsdroid.exe -e -T 1230768000 -C %s -S %s -f %s -a /%s %s/output/%s.img" %(fsconfig_path, filecontexts_path, directoryname.get(), os.path.basename(directoryname.get()), WorkDir, os.path.basename(directoryname.get()))
             runcmd(cmd)
             statusend()
             showinfo("打包结束")
@@ -879,12 +883,21 @@ def findFsConfig(Path):
     else:
         return "0"
 
+def findFileContexts(Path):
+    parentPath = os.path.dirname(Path)
+    currentPath = os.path.basename(parentPath)
+    if os.path.exists(parentPath + '\config\\' + currentPath + "_file_contexts"):
+        return parentPath + '\config\\' + currentPath + "_file_contexts"
+    else:
+        return "0"
+
 def __repackerofsimage():
     if WorkDir:
         dirChooseWindow("选择你要打包的目录 例如 ：.\\NH4_test\\vendor\\vendor")
         # Audo choose fs_config
         showinfo("自动搜寻 fs_config")
         isFsConfig = findFsConfig(directoryname.get())
+        isFileContexts = findFileContexts(directoryname.get())
         if isFsConfig != "0":
             showinfo("自动搜寻 fs_config 完成: " + isFsConfig)
             fsconfig_path = isFsConfig
@@ -892,9 +905,12 @@ def __repackerofsimage():
             showinfo("自动搜寻 fs_config 失败，请手动选择")
             fileChooseWindow("选择你要打包目录的fs_config文件")
             fsconfig_path = filename.get()
+        if isFileContexts != "0":
+            showinfo("自动搜寻 file_contexts 完成" + isFileContexts)
+            filecontexts_path = isFileContexts
         statusstart()
         fspatch.main(directoryname.get(), filename.get())
-        cmd = "mkfs.erofs.exe %s/output/%s.img %s -z\"%s\" -T\"1230768000\" --mount-point=/%s --fs-config-file=%s" %(WorkDir, os.path.basename(directoryname.get()), directoryname.get().replace("\\","/"), UICONFIG['EROFSCOMPRESSOR'], os.path.basename(directoryname.get()), fsconfig_path)
+        cmd = "mkfs.erofs.exe %s/output/%s.img %s -z\"%s\" -T\"1230768000\" --mount-point=/%s --fs-config-file=%s --file-contexts=%s" %(WorkDir, os.path.basename(directoryname.get()), directoryname.get().replace("\\","/"), UICONFIG['EROFSCOMPRESSOR'], os.path.basename(directoryname.get()), fsconfig_path, filecontexts_path)
         print(cmd)
         runcmd(cmd)
         statusend()
@@ -911,51 +927,11 @@ def repackextimage():
 
 def __repackSparseImage():
     if (WorkDir):
-        dirChooseWindow("选择你要打包的目录 例如 ：.\\NH4_test\\vendor\\vendor")
-        # Audo choose fs_config
-        showinfo("自动搜寻 fs_config")
-        isFsConfig = findFsConfig(directoryname.get())
-        if isFsConfig != "0":
-            showinfo("自动搜寻 fs_config 完成: " + isFsConfig)
-            fsconfig_path = isFsConfig
-        else:
-            showinfo("自动搜寻 fs_config 失败，请手动选择")
-            fileChooseWindow("选择你要打包目录的fs_config文件")
-            fsconfig_path = filename.get()
-        if (os.path.isdir(directoryname.get())):
-            showinfo("修补fs_config文件")
-            fspatch.main(directoryname.get(), fsconfig_path)
-            # Thanks DXY provid info
-            cmd = "busybox ash -c \""
-            if os.path.basename(directoryname.get()).find("odm")!=-1:
-                MUTIIMGSIZE = 1.2
-            else:
-                MUTIIMGSIZE = 1.07
-            if (UICONFIG['AUTOMUTIIMGSIZE']):
-                EXTIMGSIZE = int(utils.getdirsize(directoryname.get())*MUTIIMGSIZE)
-            else:
-                EXTIMGSIZE = UICONFIG['MODIFIEDIMGSIZE']
-            cmd += "MKE2FS_CONFIG=bin/mke2fs.conf E2FSPROGS_FAKE_TIME=1230768000 mke2fs.exe "
-            cmd += "-O %s " %(UICONFIG['EXTFUEATURE'])
-            cmd += "-L %s " %(os.path.basename(directoryname.get()))
-            cmd += "-I 256 "
-            cmd += "-M /%s -m 0 " %(os.path.basename(directoryname.get()))  # mount point
-            cmd += "-t %s " %(UICONFIG['EXTREPACKTYPE'])
-            cmd += "-b %s " %(UICONFIG['EXTBLOCKSIZE'])
-            cmd += "%s/output/%s.img " %(WorkDir, os.path.basename(directoryname.get()))
-            cmd += "%s\"" %(int(EXTIMGSIZE/4096))
-            showinfo("尝试创建目录output")
-            utils.mkdir(WorkDir + os.sep +"output")
-            showinfo("开始打包EXT镜像")
-            statusstart()
-            showinfo(cmd)
-            runcmd(cmd)
-            cmd = "e2fsdroid.exe -e -T 1230768000 -C %s -f %s -a /%s %s/output/%s.img" %(filename.get(), directoryname.get(), os.path.basename(directoryname.get()), WorkDir, os.path.basename(directoryname.get()))
-            runcmd(cmd)
-            showinfo("打包结束")
+            __repackextimage()
             showinfo("开始转换EXT镜像为Sparse压缩格式")
             # showinfo(os.path.basename(directoryname.get()))
-            cmd = "img2simg.exe %s/output/%s.img %s/output/%s_sparse.img" %(WorkDir, os.path.basename(directoryname.get()), WorkDir, os.path.basename(directoryname.get()))
+            # old : img2simg   new : ext2simg
+            cmd = "%s %s/output/%s.img %s/output/%s_sparse.img" %(UICONFIG['SPARSETOOL'], WorkDir, os.path.basename(directoryname.get()), WorkDir, os.path.basename(directoryname.get()))
             runcmd(cmd)
             showinfo("转换结束")
             statusend()

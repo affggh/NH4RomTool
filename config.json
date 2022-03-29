@@ -4,5 +4,6 @@
    "EXTREPACKTYPE": "ext4",
    "EXTBLOCKSIZE": "4096",
    "EXTFUEATURE": "^has_journal",
-   "EROFSCOMPRESSOR": "lz4hc"
+   "EROFSCOMPRESSOR": "lz4hc",
+   "SPARSETOOL": "img2simg"
 }
