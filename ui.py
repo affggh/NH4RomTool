@@ -909,7 +909,7 @@ def __repackerofsimage():
             showinfo("自动搜寻 file_contexts 完成" + isFileContexts)
             filecontexts_path = isFileContexts
         statusstart()
-        fspatch.main(directoryname.get(), filename.get())
+        fspatch.main(directoryname.get(), fsconfig_path)
         cmd = "mkfs.erofs.exe %s/output/%s.img %s -z\"%s\" -T\"1230768000\" --mount-point=/%s --fs-config-file=%s --file-contexts=%s" %(WorkDir, os.path.basename(directoryname.get()), directoryname.get().replace("\\","/"), UICONFIG['EROFSCOMPRESSOR'], os.path.basename(directoryname.get()), fsconfig_path, filecontexts_path)
         print(cmd)
         runcmd(cmd)
