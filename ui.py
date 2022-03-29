@@ -882,10 +882,19 @@ def findFsConfig(Path):
 def __repackerofsimage():
     if WorkDir:
         dirChooseWindow("选择你要打包的目录 例如 ：.\\NH4_test\\vendor\\vendor")
-        fileChooseWindow("选择你要打包目录的fs_config文件")
+        # Audo choose fs_config
+        showinfo("自动搜寻 fs_config")
+        isFsConfig = findFsConfig(directoryname.get())
+        if isFsConfig != "0":
+            showinfo("自动搜寻 fs_config 完成: " + isFsConfig)
+            fsconfig_path = isFsConfig
+        else:
+            showinfo("自动搜寻 fs_config 失败，请手动选择")
+            fileChooseWindow("选择你要打包目录的fs_config文件")
+            fsconfig_path = filename.get()
         statusstart()
         fspatch.main(directoryname.get(), filename.get())
-        cmd = "mkfs.erofs.exe %s/output/%s.img %s -z\"%s\" -T\"1230768000\" --mount-point=/%s --fs-config-file=%s" %(WorkDir, os.path.basename(directoryname.get()), directoryname.get().replace("\\","/"), UICONFIG['EROFSCOMPRESSOR'], os.path.basename(directoryname.get()), filename.get())
+        cmd = "mkfs.erofs.exe %s/output/%s.img %s -z\"%s\" -T\"1230768000\" --mount-point=/%s --fs-config-file=%s" %(WorkDir, os.path.basename(directoryname.get()), directoryname.get().replace("\\","/"), UICONFIG['EROFSCOMPRESSOR'], os.path.basename(directoryname.get()), fsconfig_path)
         print(cmd)
         runcmd(cmd)
         statusend()
