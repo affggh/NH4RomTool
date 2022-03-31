@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from ast import Return
+from asyncio.windows_events import NULL
 import os
 import sys
 import glob
@@ -12,6 +14,7 @@ from tkinter import ttk
 from tkinter.filedialog import *
 from tkinter import *
 from tkinter import scrolledtext
+from tkinter.simpledialog import askstring
 from ttkbootstrap import Style  # use ttkbootstrap theme
 from ttkbootstrap.constants import *
 from ttkbootstrap.scrolled import ScrolledFrame
@@ -33,6 +36,7 @@ import vbpatch
 import imgextractor
 import sdat2img
 import fspatch
+import img2sdat
 
 
 # Flag
@@ -320,7 +324,8 @@ def about():
     imgLabe2.pack(side=TOP, expand=YES, pady=3)
     root2.mainloop()
 
-def userInputWindow():
+def userInputWindow(title='输入文本'):
+
     inputWindow = tk.Toplevel()
     curWidth = 400
     curHight = 120
@@ -337,7 +342,7 @@ def userInputWindow():
     inputWindow.geometry(size_xy)
     #inputWindow.geometry("300x180")
     inputWindow.resizable(0,0) # 设置最大化窗口不可用
-    inputWindow.title("输入文本")
+    inputWindow.title(title)
     ent = ttk.Entry(inputWindow,textvariable=inputvar,width=50)
     ent.pack(side=TOP, expand=YES, padx=5)
     ttk.Button(inputWindow, text='确认', command=inputWindow.destroy,style='primiary.Outline.TButton').pack(side=TOP, expand=YES, padx=5)
@@ -960,6 +965,84 @@ def repackSparseImage():
     th = threading.Thread(target=__repackSparseImage)
     th.start()
 
+def compressToBr():
+    th = threading.Thread(target=__compressToBr)
+    th.start()
+
+def __compressToBr():
+    if WorkDir:
+        # TO-DO: 全自动化   20220331
+        fileChooseWindow("选择要转换为br的dat文件")
+        imgFilePath = filename.get()
+        if(os.path.exists(imgFilePath) == False):
+            showinfo("文件不存在: " + imgFilePath)
+        elif returnoutput("gettype -i " + imgFilePath).replace('\r\n', '') != "dat":
+            showinfo("选中的文件并非 DAT，请先转换")
+            return
+        else:
+            showinfo("开始转换")
+            statusstart()
+            th = threading.Thread(target=runcmd("brotli.exe -q 6 " + imgFilePath))
+            th.start()
+            statusend()
+            showinfo("转换完毕，脱出到相同文件夹")
+    else:
+        showinfo("请先选择工作目录")
+
+def repackDat():
+    th = threading.Thread(target=__repackDat)
+    th.start()
+
+def __repackDat():
+    if WorkDir:
+        # TO-DO: 打包后自动定位转换好的 simg   20220331
+        # TO-DO: 自动识别Android版本   20220331
+        fileChooseWindow("选择要转换为dat的img文件")
+        imgFilePath = filename.get()
+        if(os.path.exists(imgFilePath) == False):
+            showinfo("文件不存在: " + imgFilePath)
+        elif returnoutput("gettype -i " + imgFilePath).replace('\r\n', '') != "sparse":
+            showinfo("选中的文件并非 Sparse，请先转换")
+            return
+        else:
+            showinfo("提示: 只接受大版本输入，例如 7.1.2 请直接输入 7.1！")
+            userInputWindow("输入Android版本")
+            inputVersion = float(inputvar.get())
+            if inputVersion == 5.0: # Android 5
+                showinfo("已选择: Android 5.0")
+                currentVersion = 1
+            elif inputVersion == 5.1: # Android 5.1
+                showinfo("已选择: Android 5.1")
+                currentVersion = 2
+            elif inputVersion >= 6.0 and inputVersion < 7.0: # Android 6.X
+                showinfo("已选择: Android 6.X")
+                currentVersion = 3
+            elif inputVersion >= 7.0: # Android 7.0+
+                showinfo("已选择: Android 7.X+")
+                currentVersion = 4
+            else:
+                currentVersion = 0
+            # PREFIX
+            inputvar.set("")
+            showinfo("提示: 输入分区名 (例如 system、vendor、odm)")
+            userInputWindow("输入分区名")
+            partitionName = inputvar.get()
+            if currentVersion == 0:
+                showinfo("Android 版本输入错误，请查看提示重新输入！")
+                return
+            elif partitionName == NULL or partitionName == "":
+                showinfo("分区名输入错误，请查看提示重新输入！")
+                return
+            # img2sdat <image file> <output dir> <version|1=5.0|2=5.1|3=6.0|4=7.0+> <prefix>
+            showinfo("开始转换")
+            statusstart()
+            th = threading.Thread(target=img2sdat.main(imgFilePath, WorkDir + "/output/", currentVersion, partitionName))
+            th.start()
+            statusend()
+            showinfo("转换完毕，脱出到工作目录下 output 文件夹")
+    else:
+        showinfo("请先选择工作目录")
+
 def Test():
     showinfo("Test function")
 
@@ -1063,8 +1146,8 @@ if __name__ == '__main__':
     ttk.Button(tab22, text='DTBO', width=10, command=repackDTBO,style='primiary.Outline.TButton').grid(row=2, column=1, padx='10', pady='8')
     ttk.Button(tab22, text='SUPER', width=10, command=Test,style='primiary.Outline.TButton').grid(row=3, column=0, padx='10', pady='8')
     ttk.Button(tab22, text='SPARSE', width=10, command=repackSparseImage,style='primiary.Outline.TButton').grid(row=3, column=1, padx='10', pady='8')
-    ttk.Button(tab22, text='DAT', width=10, command=Test,style='primiary.Outline.TButton').grid(row=4, column=0, padx='10', pady='8')
-    ttk.Button(tab22, text='BR', width=10, command=Test,style='primiary.Outline.TButton').grid(row=4, column=1, padx='10', pady='8')
+    ttk.Button(tab22, text='DAT', width=10, command=repackDat,style='primiary.Outline.TButton').grid(row=4, column=0, padx='10', pady='8')
+    ttk.Button(tab22, text='BR', width=10, command=compressToBr,style='primiary.Outline.TButton').grid(row=4, column=1, padx='10', pady='8')
     
     # pack tab2
     tab21.pack(side=TOP, fill=BOTH, expand=NO)
@@ -1075,7 +1158,7 @@ if __name__ == '__main__':
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Button(tab33, text='OZIP解密', width=10, command=ozipDecrypt, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
-    ttk.Button(tab33, text='OZIP加密（没啥用）', width=10, command=ozipEncrypt, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
+    ttk.Button(tab33, text='OZIP加密', width=10, command=ozipEncrypt, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Button(tab33, text='MIUI获取', width=10, command=getMiuiWindow, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
