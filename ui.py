@@ -40,12 +40,12 @@ import img2sdat
 
 
 # Flag
-DEBUG = True                    # 显示调试信息
+DEBUG = False                    # 显示调试信息
 HIDE_CONSOLE = False            # 隐藏控制台
 MENUBAR = True                  # 菜单栏
 USEMYLOGO = True                # 使用自己的logo
 TEXTREADONLY = True             # 文本框只读
-TEXTSHOWBANNER = True           # 展示那个文本框的字符画
+TEXTSHOWBANNER = False           # 展示那个文本框的字符画
 USEMYSTD = False                # 输出重定向到Text控件
 SHOWSHIJU = False               # 展示诗句
 USESTATUSBAR = True             # 使用状态栏（并不好用）
@@ -105,7 +105,7 @@ if(VERIFYPROG):
 # Var
 VERSION = "20220305"
 AUTHOR = "affggh"
-WINDOWTITLE = "NH4RomTool (沼_Rom工具箱)" + "    版本：" + VERSION + "    作者：" + AUTHOR
+WINDOWTITLE = "NH4RomTool (沼_Rom工具箱)" + "    版本: " + VERSION + "    作者: " + AUTHOR
 THEME = "vapor"  # 设置默认主题
 LOGOICO = ".\\bin\\logo.ico"
 BANNER = ".\\bin\\banner"
@@ -140,6 +140,8 @@ height = 480
 
 if(ALLOWMODIFYCMD):
     height += 40
+if USESTATUSBAR:
+    height += 80
 
 root.geometry("%sx%s" %(width,height))
 # root.resizable(0,0) # 设置最大化窗口不可用
@@ -286,12 +288,12 @@ def cleaninfo():
 def selectFile():
     filepath = askopenfilename()                   # 选择打开什么文件，返回文件名
     filename.set(filepath.replace('/', '\\'))      # 设置变量filename的值
-    showinfo("选择文件为：\n%s" %(filepath.replace('/', '\\')))
+    showinfo("选择文件为: %s" %(filepath.replace('/', '\\')))
 
 def selectDir():
     dirpath = askdirectory()                   # 选择文件夹
     directoryname.set(dirpath.replace('/', '\\'))
-    showinfo("选择文件夹为：\n%s" %(dirpath.replace('/', '\\')))
+    showinfo("选择文件夹为: %s" %(dirpath.replace('/', '\\')))
 
 def about():
     root2 = tk.Toplevel()
@@ -350,8 +352,8 @@ def userInputWindow(title='输入文本'):
 
 def fileChooseWindow(tips):
     chooseWindow = tk.Toplevel()
-    curWidth = 400
-    curHight = 120
+    curWidth = 500
+    curHight = 180
     # 获取屏幕宽度和高度
     scn_w, scn_h = root.maxsize()
     # print(scn_w, scn_h)
@@ -471,7 +473,7 @@ def SelectWorkDir():
     if(item_text[0]!=""):
         global WorkDir
         WorkDir = item_text[0]
-        showinfo("选择工作目录为：%s" %(WorkDir))
+        showinfo("选择工作目录为: %s" %(WorkDir))
 
 def ConfirmWorkDir():
     if not (WorkDir):
@@ -484,7 +486,7 @@ def tableClicked(event):
 
 def rmWorkDir():
     if(WorkDir):
-        showinfo("删除目录：%s" %(WorkDir))
+        showinfo("删除目录: %s" %(WorkDir))
         shutil.rmtree(WorkDir)
     else:
         showinfo("Error : 要删除的文件夹不存在")
@@ -492,14 +494,14 @@ def rmWorkDir():
 
 def mkWorkdir():
     userInputWindow()
-    showinfo("用户输入：%s" %(inputvar.get()))
+    showinfo("用户输入: %s" %(inputvar.get()))
     utils.mkdir("NH4_" + "%s" %(inputvar.get()))
     getWorkDir()
 
 def detectFileType():
     fileChooseWindow("检测文件类型")
     if(os.access(filename.get(), os.F_OK)):
-        showinfo("文件格式为 ：")
+        showinfo("文件格式为 : ")
         runcmd("gettype -i %s" %(filename.get()))
     else:
         showinfo("Error : 文件不存在")
@@ -518,7 +520,7 @@ def __ozipEncrypt():
         runcmd("zip2ozip "+filename.get())
         statusend()
     else:
-        showinfo("Error ：文件不存在")
+        showinfo("Error : 文件不存在")
 
 def ozipEncrypt():
     threading.Thread(target=__ozipEncrypt).start()
@@ -594,7 +596,7 @@ def __unzipfile():
     if(WorkDir):
         fileChooseWindow("选择要解压的文件")
         if(os.access(filename.get(), os.F_OK)):
-            showinfo("正在解压文件：" + filename.get())
+            showinfo("正在解压文件: " + filename.get())
             statusstart()
             MyThread(utils.unzip_file(filename.get(), WorkDir + "\\rom"))
             statusend()
@@ -614,7 +616,7 @@ def __zipcompressfile():
     showinfo("输入生成的文件名")
     userInputWindow()
     if(WorkDir):
-        showinfo("正在压缩 ：" + inputvar.get() + ".zip")
+        showinfo("正在压缩 : " + inputvar.get() + ".zip")
         statusstart()
         MyThread(utils.zip_file(inputvar.get()+".zip", WorkDir + "\\rom"))
         statusend()
@@ -638,11 +640,11 @@ def __parsePayload():
         data = returnoutput("bin/parsePayload.exe " + filename.get())
         datadict = dict(json.loads(data.replace("\'","\"")))
         showinfo("PAYLOAD文件解析结果如下")
-        showinfo("        文件 HASH 值 ：%s" %(utils.bytesToHexString(base64.b64decode(datadict["FILE_HASH"]))))
-        showinfo("        文件大小     ：%s" %(datadict["FILE_SIZE"]))
-        showinfo("        METADATA HASH：%s" %(utils.bytesToHexString(base64.b64decode(datadict["METADATA_HASH"]))))
-        showinfo("        METADATA 大小：%s" %(datadict["METADATA_SIZE"]))
-        showinfo("  注：HASH值类型为SHA256")
+        showinfo("        文件 HASH 值 : %s" %(utils.bytesToHexString(base64.b64decode(datadict["FILE_HASH"]))))
+        showinfo("        文件大小     : %s" %(datadict["FILE_SIZE"]))
+        showinfo("        METADATA HASH: %s" %(utils.bytesToHexString(base64.b64decode(datadict["METADATA_HASH"]))))
+        showinfo("        METADATA 大小: %s" %(datadict["METADATA_SIZE"]))
+        showinfo("  注: HASH值类型为SHA256")
         statusend()
     else:
         showinfo("Error : 文件不存在")
@@ -689,7 +691,7 @@ def __smartUnpack():
         if(os.access(filename.get(),os.F_OK)):
             filetype = returnoutput("gettype -i " + filename.get()).replace('\r\n', '')  
             # for windows , end of line basicly is \x0a\x0d which is \r\n
-            showinfo("智能识别文件类型为 ： " + filetype)
+            showinfo("智能识别文件类型为 :  " + filetype)
             unpackdir = os.path.abspath(WorkDir + "/" + filetype)
             if filetype == "ozip":
                 showinfo("正在解密ozip")
@@ -715,7 +717,7 @@ def __smartUnpack():
                     statusstart()
                     runcmd("erofsUnpackRust.exe " + filename.get() + " " + WorkDir + os.sep + dirname)
                     statusend()
-                showinfo("在工作目录创建解包目录 ：" + dirname)
+                showinfo("在工作目录创建解包目录 : " + dirname)
                 if os.path.isdir(os.path.abspath(WorkDir) + "/" + dirname):
                     showinfo("文件夹存在，正在删除")
                     shutil.rmtree(os.path.abspath(WorkDir) + "/" + dirname)
@@ -737,7 +739,7 @@ def __smartUnpack():
                     statusend()
                 for i in ["super", "dtbo", "boot", "payload"]:
                     if filetype == i:
-                        showinfo("在工作目录创建解包目录 ： "+ i)
+                        showinfo("在工作目录创建解包目录 :  "+ i)
                         if os.path.isdir(unpackdir):
                             showinfo("文件夹存在，正在删除")
                             shutil.rmtree(unpackdir)
@@ -831,7 +833,7 @@ def repackboot():
 
 def __repackextimage():
     if (WorkDir):
-        dirChooseWindow("选择你要打包的目录 例如 ：.\\NH4_test\\vendor\\vendor")
+        dirChooseWindow("选择你要打包的目录 例如 : .\\NH4_test\\vendor\\vendor")
         # Audo choose fs_config
         showinfo("自动搜寻 fs_config")
         isFsConfig = findFsConfig(directoryname.get())
@@ -899,7 +901,7 @@ def findFileContexts(Path):
 
 def __repackerofsimage():
     if WorkDir:
-        dirChooseWindow("选择你要打包的目录 例如 ：.\\NH4_test\\vendor\\vendor")
+        dirChooseWindow("选择你要打包的目录 例如 : .\\NH4_test\\vendor\\vendor")
         # Audo choose fs_config
         showinfo("自动搜寻 fs_config")
         isFsConfig = findFsConfig(directoryname.get())
@@ -950,14 +952,21 @@ def repackDTBO():
 
 def __repackSparseImage():
     if (WorkDir):
-            __repackextimage()
-            showinfo("开始转换EXT镜像为Sparse压缩格式")
-            # showinfo(os.path.basename(directoryname.get()))
-            # old : img2simg   new : ext2simg
-            cmd = "%s %s/output/%s.img %s/output/%s_sparse.img" %(UICONFIG['SPARSETOOL'], WorkDir, os.path.basename(directoryname.get()), WorkDir, os.path.basename(directoryname.get()))
-            runcmd(cmd)
-            showinfo("转换结束")
-            statusend()
+            # 只将 EXT 转为 SIMG 而不是重新打包一次
+            fileChooseWindow("选择要转换为 SIMG 的 IMG 文件")
+            imgFilePath = filename.get()
+            if(os.path.exists(imgFilePath) == False):
+                showinfo("文件不存在: " + imgFilePath)
+            elif returnoutput("gettype -i " + imgFilePath).replace('\r\n', '') != "ext":
+                showinfo("选中的文件并非 EXT 镜像，请先转换")
+                return
+            else:
+                showinfo("开始转换")
+                statusstart()
+                cmd = "%s %s %s/output/%s_sparse.img" %(UICONFIG['SPARSETOOL'], imgFilePath, WorkDir, os.path.basename(directoryname.get()))
+                runcmd(cmd)
+                statusend()
+                showinfo("转换结束")
     else:
         showinfo("请先选择工作目录")
 
@@ -971,8 +980,7 @@ def compressToBr():
 
 def __compressToBr():
     if WorkDir:
-        # TO-DO: 全自动化   20220331
-        fileChooseWindow("选择要转换为br的dat文件")
+        fileChooseWindow("选择要转换为 BR 的 DAT 文件")
         imgFilePath = filename.get()
         if(os.path.exists(imgFilePath) == False):
             showinfo("文件不存在: " + imgFilePath)
@@ -997,15 +1005,15 @@ def __repackDat():
     if WorkDir:
         # TO-DO: 打包后自动定位转换好的 simg   20220331
         # TO-DO: 自动识别Android版本   20220331
-        fileChooseWindow("选择要转换为dat的img文件")
+        fileChooseWindow("选择要转换为 DAT 的 IMG 文件")
         imgFilePath = filename.get()
         if(os.path.exists(imgFilePath) == False):
             showinfo("文件不存在: " + imgFilePath)
         elif returnoutput("gettype -i " + imgFilePath).replace('\r\n', '') != "sparse":
-            showinfo("选中的文件并非 Sparse，请先转换")
+            showinfo("选中的文件并非 SPARSE，请先转换")
             return
         else:
-            showinfo("提示: 只接受大版本输入，例如 7.1.2 请直接输入 7.1！")
+            showinfo("警告: 只接受大版本输入，例如 7.1.2 请直接输入 7.1！")
             userInputWindow("输入Android版本")
             inputVersion = float(inputvar.get())
             if inputVersion == 5.0: # Android 5
@@ -1145,9 +1153,9 @@ if __name__ == '__main__':
     ttk.Button(tab22, text='DTS2DTB', width=10, command=Test,style='primiary.Outline.TButton').grid(row=2, column=0, padx='10', pady='8')
     ttk.Button(tab22, text='DTBO', width=10, command=repackDTBO,style='primiary.Outline.TButton').grid(row=2, column=1, padx='10', pady='8')
     ttk.Button(tab22, text='SUPER', width=10, command=Test,style='primiary.Outline.TButton').grid(row=3, column=0, padx='10', pady='8')
-    ttk.Button(tab22, text='SPARSE', width=10, command=repackSparseImage,style='primiary.Outline.TButton').grid(row=3, column=1, padx='10', pady='8')
-    ttk.Button(tab22, text='DAT', width=10, command=repackDat,style='primiary.Outline.TButton').grid(row=4, column=0, padx='10', pady='8')
-    ttk.Button(tab22, text='BR', width=10, command=compressToBr,style='primiary.Outline.TButton').grid(row=4, column=1, padx='10', pady='8')
+    ttk.Button(tab22, text='EXT->SIMG', width=10, command=repackSparseImage,style='primiary.Outline.TButton').grid(row=3, column=1, padx='10', pady='8')
+    ttk.Button(tab22, text='IMG->DAT', width=10, command=repackDat,style='primiary.Outline.TButton').grid(row=4, column=0, padx='10', pady='8')
+    ttk.Button(tab22, text='DAT->BR', width=10, command=compressToBr,style='primiary.Outline.TButton').grid(row=4, column=1, padx='10', pady='8')
     
     # pack tab2
     tab21.pack(side=TOP, fill=BOTH, expand=NO)
@@ -1209,12 +1217,13 @@ if __name__ == '__main__':
         showbanner()
 
     if(DEBUG):
-        showinfo("Board id : " + sn.get_board_id())
-        showinfo(UICONFIG)
+        showinfo("Debug 模式已开启")
+        # showinfo("Board id : " + sn.get_board_id())
+        # showinfo(UICONFIG)
     else:
-        showinfo("        Version : %s" %(VERSION))
-        showinfo("        Author  : %s" %(AUTHOR))
-        showinfo("        LICENSE : %s" %(LICENSE))
+        showinfo("  Version : %s" %(VERSION))
+        showinfo("  Author  : %s" %(AUTHOR))
+        showinfo("  LICENSE : %s" %(LICENSE))
 
     root.update()
     root.mainloop()
