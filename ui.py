@@ -1232,3 +1232,5 @@ if __name__ == '__main__':
     
     if(USEMYSTD):
         mystd.restoreStd() # 还原标准输出
+
+    threading.Thread(target=utils.getOnlineVersion(), daemon=True).start()   # 开一个子线程防止卡住
