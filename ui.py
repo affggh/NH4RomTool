@@ -103,6 +103,7 @@ if(VERIFYPROG):
                 f.write(vf2code.encode("utf-8").decode("utf-8"))
 
 # Var
+VERSION = utils.getCurrentVersion()
 AUTHOR = "affggh"
 WINDOWTITLE = "NH4RomTool " + " [版本: " + VERSION + "] [作者: " + AUTHOR + "]"
 THEME = "minty"  # 设置默认主题
