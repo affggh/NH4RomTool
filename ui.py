@@ -103,10 +103,9 @@ if(VERIFYPROG):
                 f.write(vf2code.encode("utf-8").decode("utf-8"))
 
 # Var
-VERSION = "20220305"
 AUTHOR = "affggh"
-WINDOWTITLE = "NH4RomTool (沼_Rom工具箱)" + "    版本: " + VERSION + "    作者: " + AUTHOR
-THEME = "vapor"  # 设置默认主题
+WINDOWTITLE = "NH4RomTool " + " [版本: " + VERSION + "] [作者: " + AUTHOR + "]"
+THEME = "minty"  # 设置默认主题
 LOGOICO = ".\\bin\\logo.ico"
 BANNER = ".\\bin\\banner"
 TEXTFONT = ['Arial', 5]
@@ -1086,7 +1085,7 @@ if __name__ == '__main__':
         menuBar.add_cascade(label="主题", menu=menu2)
 
     # define labels
-    frame = ttk.LabelFrame(root, text="- - NH4 Rom Tool - -", labelanchor="nw", relief=GROOVE, borderwidth=1)
+    frame = ttk.LabelFrame(root, text="NH4 Rom Tool", labelanchor="nw", relief=GROOVE, borderwidth=1)
     frame1 = ttk.LabelFrame(frame, text="功能区", labelanchor="nw", relief=SUNKEN, borderwidth=1)
     frame2 = ttk.LabelFrame(frame, text="信息反馈", labelanchor="nw", relief=SUNKEN, borderwidth=1)
 
@@ -1164,20 +1163,20 @@ if __name__ == '__main__':
     # tab3
     ttk.Button(tab33, text='检测文件格式', width=10, command=detectFileType, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
-    ttk.Button(tab33, text='OZIP解密', width=10, command=ozipDecrypt, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
+    ttk.Button(tab33, text='OZIP 解密', width=10, command=ozipDecrypt, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
-    ttk.Button(tab33, text='OZIP加密', width=10, command=ozipEncrypt, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
+    ttk.Button(tab33, text='OZIP 加密', width=10, command=ozipEncrypt, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
-    ttk.Button(tab33, text='MIUI获取', width=10, command=getMiuiWindow, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
+    ttk.Button(tab33, text='MIUI 更新包获取', width=10, command=getMiuiWindow, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
     
     s = ttk.Style()
     s.configure('Button.parsePayload', font=('Helvetica', '5'))
-    ttk.Button(tab33, text='PAYLOAD解析', width=10, command=parsePayload, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
+    ttk.Button(tab33, text='PAYLOAD.bin 解析', width=10, command=parsePayload, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
-    ttk.Button(tab33, text='修补VBMETA关闭校验', width=10, command=patchvbmeta, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
+    ttk.Button(tab33, text='关闭 VBMETA 校验', width=10, command=patchvbmeta, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
-    ttk.Button(tab33, text='修补fs_config文件', width=10, command=patchfsconfig, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
+    ttk.Button(tab33, text='修补 FS_CONFIG 文件', width=10, command=patchfsconfig, bootstyle="link").pack(side=TOP, expand=NO, fill=X, padx=8)
     ttk.Separator(tab33).pack(side=TOP, expand=NO, fill=X, padx=8)
 
     # ScrolledText
@@ -1221,9 +1220,11 @@ if __name__ == '__main__':
         # showinfo("Board id : " + sn.get_board_id())
         # showinfo(UICONFIG)
     else:
+        '''
         showinfo("  Version : %s" %(VERSION))
         showinfo("  Author  : %s" %(AUTHOR))
         showinfo("  LICENSE : %s" %(LICENSE))
+        '''
 
     root.update()
     root.mainloop()
