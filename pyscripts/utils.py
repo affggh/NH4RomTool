@@ -6,6 +6,7 @@ import zipfile
 import threading
 import subprocess
 import requests
+from requests import exceptions
 # Import win32api
 import win32api
 import win32gui, win32con
@@ -182,6 +183,19 @@ def getShiju():
     r = requests.get(url, proxies=bypass_systemProxy)
     rjason = r.json()
     return rjason
+
+def getOnlineVersion():
+    bypass_systemProxy = { "http" : None,
+                           "https" : None}
+    url = "https://ghproxy.com/https://raw.githubusercontent.com/affggh/NH4RomTool/master/version.txt"
+    r = requests.get(url, proxies=bypass_systemProxy)
+    return r.text
+
+def getCurrentVersion():
+    file = open("version.txt", "r")
+    content = file.read()
+    file.close()
+    return content
 
 def getdirsize(dir):
     size = 0
