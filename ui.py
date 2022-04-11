@@ -1134,6 +1134,10 @@ if __name__ == '__main__':
     table.pack(side=TOP, fill=BOTH, expand=YES)
     table.bind('<ButtonRelease-1>',tableClicked)
     getWorkDir()
+
+    # 咕咕咕
+    def functionNotAvailable() :
+        showinfo("当你看到这个提示的时候，说明这个功能仍未实装，可能需要至多 2147483647 小时来完成它")
     
     # Buttons under Treeview
     tab12 = ttk.Frame(tab1)
@@ -1162,9 +1166,9 @@ if __name__ == '__main__':
     ttk.Button(tab22, text='BOOT', width=10, command=repackboot,style='primiary.Outline.TButton').grid(row=0, column=1, padx='10', pady='8')
     ttk.Button(tab22, text='EXT', width=10, command=repackextimage,style='primiary.Outline.TButton').grid(row=1, column=0, padx='10', pady='8')
     ttk.Button(tab22, text='EROFS', width=10, command=repackerofsimage,style='primiary.Outline.TButton').grid(row=1, column=1, padx='10', pady='8')
-    ttk.Button(tab22, text='DTS2DTB', width=10, command=Test,style='primiary.Outline.TButton').grid(row=2, column=0, padx='10', pady='8')
+    ttk.Button(tab22, text='DTS2DTB', width=10, command=functionNotAvailable,style='primiary.Outline.TButton').grid(row=2, column=0, padx='10', pady='8')
     ttk.Button(tab22, text='DTBO', width=10, command=repackDTBO,style='primiary.Outline.TButton').grid(row=2, column=1, padx='10', pady='8')
-    ttk.Button(tab22, text='SUPER', width=10, command=Test,style='primiary.Outline.TButton').grid(row=3, column=0, padx='10', pady='8')
+    ttk.Button(tab22, text='SUPER', width=10, command=functionNotAvailable,style='primiary.Outline.TButton').grid(row=3, column=0, padx='10', pady='8')
     ttk.Button(tab22, text='EXT->SIMG', width=10, command=repackSparseImage,style='primiary.Outline.TButton').grid(row=3, column=1, padx='10', pady='8')
     ttk.Button(tab22, text='IMG->DAT', width=10, command=repackDat,style='primiary.Outline.TButton').grid(row=4, column=0, padx='10', pady='8')
     ttk.Button(tab22, text='DAT->BR', width=10, command=compressToBr,style='primiary.Outline.TButton').grid(row=4, column=1, padx='10', pady='8')
