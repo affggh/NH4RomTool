@@ -18,7 +18,7 @@ from tkinter.simpledialog import askstring
 from ttkbootstrap import Style  # use ttkbootstrap theme
 from ttkbootstrap.constants import *
 from ttkbootstrap.scrolled import ScrolledFrame
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 import requests
 # using threading in some function
 import threading
@@ -1051,6 +1051,43 @@ def __repackDat():
     else:
         showinfo("请先选择工作目录")
 
+def __repackSuper():
+    if WorkDir:
+        packtype = tk.StringVar()
+
+        def selecttype(type):
+            packtype.set(type)
+            w.destroy()
+
+        showinfo("打包super镜像")
+        w = tk.Toplevel()
+        curWidth = 400
+        curHight = 120
+        # 获取屏幕宽度和高度
+        scn_w, scn_h = root.maxsize()
+        # 计算中心坐标
+        cen_x = (scn_w - curWidth) / 2
+        cen_y = (scn_h - curHight) / 2
+        # 设置窗口初始大小和位置
+        size_xy = '%dx%d+%d+%d' % (curWidth, curHight, cen_x, cen_y)
+        w.geometry(size_xy)
+        w.resizable(0,0) # 设置最大化窗口不可用
+        w.title("选择你的打包的类型：")
+        ttk.Button(w, text='VAB', command=lambda:selecttype("VAB")).pack(side=LEFT, expand=YES, padx=5)
+        ttk.Button(w, text='AB', command=lambda:selecttype("AB")).pack(side=LEFT, expand=YES, padx=5)
+        ttk.Button(w, text='A-only', command=lambda:selecttype("A-only")).pack(side=LEFT, expand=YES, padx=5)
+        w.wait_window()
+        if packtype=="":
+            showinfo("没有获取到选项")
+        else:
+            showinfo(packtype.get())
+    else:
+        showinfo("请先选择工作目录")
+
+def repackSuper():
+    th = threading.Thread(target=__repackSuper)
+    th.start()
+
 def Test():
     showinfo("Test function")
 
@@ -1152,7 +1189,7 @@ if __name__ == '__main__':
     ttk.Button(tab22, text='EROFS', width=10, command=repackerofsimage,style='primiary.Outline.TButton').grid(row=1, column=1, padx='10', pady='8')
     ttk.Button(tab22, text='DTS2DTB', width=10, command=Test,style='primiary.Outline.TButton').grid(row=2, column=0, padx='10', pady='8')
     ttk.Button(tab22, text='DTBO', width=10, command=repackDTBO,style='primiary.Outline.TButton').grid(row=2, column=1, padx='10', pady='8')
-    ttk.Button(tab22, text='SUPER', width=10, command=Test,style='primiary.Outline.TButton').grid(row=3, column=0, padx='10', pady='8')
+    ttk.Button(tab22, text='SUPER', width=10, command=repackSuper,style='primiary.Outline.TButton').grid(row=3, column=0, padx='10', pady='8')
     ttk.Button(tab22, text='EXT->SIMG', width=10, command=repackSparseImage,style='primiary.Outline.TButton').grid(row=3, column=1, padx='10', pady='8')
     ttk.Button(tab22, text='IMG->DAT', width=10, command=repackDat,style='primiary.Outline.TButton').grid(row=4, column=0, padx='10', pady='8')
     ttk.Button(tab22, text='DAT->BR', width=10, command=compressToBr,style='primiary.Outline.TButton').grid(row=4, column=1, padx='10', pady='8')
