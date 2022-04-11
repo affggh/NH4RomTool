@@ -54,6 +54,14 @@ ALLOWMODIFYCMD = True           # 提供一个可以输入任意命令的框
 EXECPATH = ".\\bin"             # 临时添加可执行程序目录到系统变量
 LICENSE = "Apache 2.0"          # 程序的开源协议
 
+# Check Update
+def checkToolUpdate():
+    onlineVersion = utils.getOnlineVersion()
+    if onlineVersion > VERSION :
+        showinfo("有更新可用，请前往 Github 页面查看 (" + VERSION + " -> " + onlineVersion + ")")
+    else :
+        showinfo("当前已是最新版本 (" + VERSION + ")")
+
 # Verify
 if(VERIFYPROG):
     VERIFYCODE = ".\\bin\\VERIFYCODE"
@@ -111,6 +119,10 @@ LOGOICO = ".\\bin\\logo.ico"
 BANNER = ".\\bin\\banner"
 TEXTFONT = ['Arial', 5]
 LOCALDIR = os.path.abspath(os.path.dirname(sys.argv[0]))
+
+# CheckUpdate
+threading.Thread(target=checkToolUpdate).start()
+
 
 # ui config This is for repack tool to detect
 if os.access(LOCALDIR+os.sep+"config.json", os.F_OK):
@@ -1232,5 +1244,3 @@ if __name__ == '__main__':
     
     if(USEMYSTD):
         mystd.restoreStd() # 还原标准输出
-
-    threading.Thread(target=utils.getOnlineVersion(), daemon=True).start()   # 开一个子线程防止卡住
