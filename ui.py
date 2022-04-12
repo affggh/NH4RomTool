@@ -1063,6 +1063,25 @@ def __repackDat():
     else:
         showinfo("请先选择工作目录")
 
+def __repackdtb():
+    if WorkDir:
+        fileChooseWindow("选择dts文件，输出到dtb文件夹")
+        if os.access(filename.get(), os.F_OK):
+            if not os.path.isdir(WorkDir+os.sep+"dtb"):
+                utils.mkdir(WorkDir+os.sep+"dtb")
+            statusstart()
+            runcmd("dtc -I dts -O dtb %s -o %s\\dtb\\%s.dtb" %(filename.get(), WorkDir, os.path.basename(filename.get()).replace(".dts",".dtb")))
+            statusend()
+            showinfo("编译为dtb完成")
+        else:
+            showinfo("文件不存在")
+    else:
+        showinfo("请先选择工作目录")
+
+def repackdtb():
+    th = threading.Thread(target=__repackdtb)
+    th.start()
+
 def __repackSuper():
     if WorkDir:
         packtype = tk.StringVar()
@@ -1085,9 +1104,9 @@ def __repackSuper():
         w.geometry(size_xy)
         w.resizable(0,0) # 设置最大化窗口不可用
         w.title("选择你的打包的类型：")
-        ttk.Button(w, text='VAB', command=lambda:selecttype("VAB")).pack(side=LEFT, expand=YES, padx=5)
-        ttk.Button(w, text='AB', command=lambda:selecttype("AB")).pack(side=LEFT, expand=YES, padx=5)
-        ttk.Button(w, text='A-only', command=lambda:selecttype("A-only")).pack(side=LEFT, expand=YES, padx=5)
+        ttk.Button(w, text='VAB', width=15, command=lambda:selecttype("VAB")).pack(side=LEFT, expand=YES, padx=5)
+        ttk.Button(w, text='AB', width=15, command=lambda:selecttype("AB")).pack(side=LEFT, expand=YES, padx=5)
+        ttk.Button(w, text='A-only', width=15, command=lambda:selecttype("A-only")).pack(side=LEFT, expand=YES, padx=5)
         w.wait_window()
         if packtype=="":
             showinfo("没有获取到选项")
@@ -1199,7 +1218,7 @@ if __name__ == '__main__':
     ttk.Button(tab22, text='BOOT', width=10, command=repackboot,style='primiary.Outline.TButton').grid(row=0, column=1, padx='10', pady='8')
     ttk.Button(tab22, text='EXT', width=10, command=repackextimage,style='primiary.Outline.TButton').grid(row=1, column=0, padx='10', pady='8')
     ttk.Button(tab22, text='EROFS', width=10, command=repackerofsimage,style='primiary.Outline.TButton').grid(row=1, column=1, padx='10', pady='8')
-    ttk.Button(tab22, text='DTS2DTB', width=10, command=Test,style='primiary.Outline.TButton').grid(row=2, column=0, padx='10', pady='8')
+    ttk.Button(tab22, text='DTS2DTB', width=10, command=repackdtb,style='primiary.Outline.TButton').grid(row=2, column=0, padx='10', pady='8')
     ttk.Button(tab22, text='DTBO', width=10, command=repackDTBO,style='primiary.Outline.TButton').grid(row=2, column=1, padx='10', pady='8')
     ttk.Button(tab22, text='SUPER', width=10, command=repackSuper,style='primiary.Outline.TButton').grid(row=3, column=0, padx='10', pady='8')
     ttk.Button(tab22, text='EXT->SIMG', width=10, command=repackSparseImage,style='primiary.Outline.TButton').grid(row=3, column=1, padx='10', pady='8')
