@@ -1085,6 +1085,9 @@ def repackdtb():
 def __repackSuper():
     if WorkDir:
         packtype = tk.StringVar()
+        packsize = tk.StringVar()
+        packsize.set("9126805504")
+        sparse = tk.IntVar()
 
         def selecttype(type):
             packtype.set(type)
@@ -1093,7 +1096,7 @@ def __repackSuper():
         showinfo("打包super镜像")
         w = tk.Toplevel()
         curWidth = 400
-        curHight = 120
+        curHight = 180
         # 获取屏幕宽度和高度
         scn_w, scn_h = root.maxsize()
         # 计算中心坐标
@@ -1104,14 +1107,34 @@ def __repackSuper():
         w.geometry(size_xy)
         w.resizable(0,0) # 设置最大化窗口不可用
         w.title("选择你的打包的类型：")
-        ttk.Button(w, text='VAB', width=15, command=lambda:selecttype("VAB")).pack(side=LEFT, expand=YES, padx=5)
-        ttk.Button(w, text='AB', width=15, command=lambda:selecttype("AB")).pack(side=LEFT, expand=YES, padx=5)
-        ttk.Button(w, text='A-only', width=15, command=lambda:selecttype("A-only")).pack(side=LEFT, expand=YES, padx=5)
+        l1 = ttk.LabelFrame(w, text="选择打包类型", labelanchor="nw", relief=GROOVE, borderwidth=1)
+        ttk.Button(l1, text='VAB', width=15, command=lambda:selecttype("VAB")).pack(side=LEFT, expand=YES, padx=5)
+        ttk.Button(l1, text='AB', width=15, command=lambda:selecttype("AB")).pack(side=LEFT, expand=YES, padx=5)
+        ttk.Button(l1, text='A-only', width=15, command=lambda:selecttype("A-only")).pack(side=LEFT, expand=YES, padx=5)
+        l1.pack(side=TOP,ipadx=10, ipady=10)
+        ttk.Label(w, text="请输入super分区大小(字节数,常见9126805504)").pack(side=TOP)
+        ttk.Entry(w, textvariable=packsize,width=50).pack(side=TOP, padx=10, pady=10, expand=YES, fill=BOTH)
+        ttk.Checkbutton(w, text = "Sparse", variable = sparse).pack(side=TOP, padx=10, pady=10)
         w.wait_window()
-        if packtype=="":
+        if packtype.get() == "":
             showinfo("没有获取到选项")
         else:
-            showinfo(packtype.get())
+            dirChooseWindow("选择super分区镜像文件所在目录")
+            superdir = directoryname.get()
+            showinfo("super分区镜像所在目录：" + superdir)
+            if sparse.get() == True:
+                showinfo("启用sparse参数")
+            cmd = "lpmake "
+            showinfo("打包类型 ： " + packtype.get())
+            cmd += "--metadata-size 65536 --super-name super "
+            if packtype.get() == 'VAB':
+                cmd += "--virtual-ab "
+            if sparse.get() == True:
+                cmd += "--sparse "
+            cmd += "--metadata-slots 2 "
+            cmd += "--device super:%s " %(packsize.get())
+            showinfo(cmd)
+
     else:
         showinfo("请先选择工作目录")
 
@@ -1224,7 +1247,7 @@ if __name__ == '__main__':
     ttk.Button(tab22, text='EROFS', width=10, command=repackerofsimage,style='primiary.Outline.TButton').grid(row=1, column=1, padx='10', pady='8')
     ttk.Button(tab22, text='DTS2DTB', width=10, command=repackdtb,style='primiary.Outline.TButton').grid(row=2, column=0, padx='10', pady='8')
     ttk.Button(tab22, text='DTBO', width=10, command=repackDTBO,style='primiary.Outline.TButton').grid(row=2, column=1, padx='10', pady='8')
-    ttk.Button(tab22, text='SUPER', width=10, command=functionNotAvailable,style='primiary.Outline.TButton').grid(row=3, column=0, padx='10', pady='8')
+    ttk.Button(tab22, text='SUPER', width=10, command=repackSuper,style='primiary.Outline.TButton').grid(row=3, column=0, padx='10', pady='8')
     ttk.Button(tab22, text='EXT->SIMG', width=10, command=repackSparseImage,style='primiary.Outline.TButton').grid(row=3, column=1, padx='10', pady='8')
     ttk.Button(tab22, text='IMG->DAT', width=10, command=repackDat,style='primiary.Outline.TButton').grid(row=4, column=0, padx='10', pady='8')
     ttk.Button(tab22, text='DAT->BR', width=10, command=compressToBr,style='primiary.Outline.TButton').grid(row=4, column=1, padx='10', pady='8')
